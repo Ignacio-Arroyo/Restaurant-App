@@ -1,0 +1,158 @@
+package restaurante.backend.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import restaurante.backend.dto.DrinkDTO;
+import restaurante.backend.dto.MealDTO;
+import restaurante.backend.entity.Drink;
+import restaurante.backend.entity.Meal;
+import restaurante.backend.service.MenuService;
+
+import jakarta.validation.Valid;
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/admin")
+@PreAuthorize("hasRole('ADMIN')")
+@CrossOrigin(origins = {"http://localhost:3000", "http://frontend"})
+public class AdminController {
+
+    @Autowired
+    private MenuService menuService;
+
+    // Meal Management
+    @PostMapping("/meals")
+    public ResponseEntity<Meal> createMeal(@Valid @RequestBody MealDTO mealDTO) {
+        try {
+            Meal meal = new Meal();
+            meal.setName(mealDTO.getName());
+            meal.setDescription(mealDTO.getDescription());
+            meal.setIngredients(mealDTO.getIngredients());
+            meal.setPrice(mealDTO.getCost());
+            meal.setType(mealDTO.getType());
+            meal.setAllergens(mealDTO.getAllergens());
+            meal.setAvailable(true); // Default to available
+            
+            Meal savedMeal = menuService.saveMeal(meal);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedMeal);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/meals/{id}")
+    public ResponseEntity<Meal> updateMeal(@PathVariable Long id, @Valid @RequestBody MealDTO mealDTO) {
+        Meal meal = menuService.getMealById(id);
+        if (meal == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        meal.setName(mealDTO.getName());
+        meal.setDescription(mealDTO.getDescription());
+        meal.setIngredients(mealDTO.getIngredients());
+        meal.setCost(mealDTO.getCost());
+        meal.setType(mealDTO.getType());
+        meal.setAllergens(mealDTO.getAllergens());
+        
+        Meal updatedMeal = menuService.saveMeal(meal);
+        return ResponseEntity.ok(updatedMeal);
+    }
+
+    @PutMapping("/meals/{id}/availability")
+    public ResponseEntity<Meal> toggleMealAvailability(@PathVariable Long id) {
+        Meal meal = menuService.getMealById(id);
+        if (meal == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        meal.setAvailable(!meal.isAvailable());
+        Meal updatedMeal = menuService.saveMeal(meal);
+        return ResponseEntity.ok(updatedMeal);
+    }
+
+    @DeleteMapping("/meals/{id}")
+    public ResponseEntity<Void> deleteMeal(@PathVariable Long id) {
+        Meal meal = menuService.getMealById(id);
+        if (meal == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        menuService.deleteMeal(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Drink Management
+    @PostMapping("/drinks")
+    public ResponseEntity<Drink> createDrink(@Valid @RequestBody DrinkDTO drinkDTO) {
+        try {
+            Drink drink = new Drink();
+            drink.setName(drinkDTO.getName());
+            drink.setDescription(drinkDTO.getDescription());
+            drink.setPrice(drinkDTO.getCost());
+            drink.setType(drinkDTO.getType());
+            drink.setSize(drinkDTO.getSize());
+            drink.setAvailable(true); // Default to available
+            
+            Drink savedDrink = menuService.saveDrink(drink);
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedDrink);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/drinks/{id}")
+    public ResponseEntity<Drink> updateDrink(@PathVariable Long id, @Valid @RequestBody DrinkDTO drinkDTO) {
+        Drink drink = menuService.getDrinkById(id);
+        if (drink == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        drink.setName(drinkDTO.getName());
+        drink.setDescription(drinkDTO.getDescription());
+        drink.setPrice(drinkDTO.getCost());
+        drink.setType(drinkDTO.getType());
+        drink.setSize(drinkDTO.getSize());
+        
+        Drink updatedDrink = menuService.saveDrink(drink);
+        return ResponseEntity.ok(updatedDrink);
+    }
+
+    @PutMapping("/drinks/{id}/availability")
+    public ResponseEntity<Drink> toggleDrinkAvailability(@PathVariable Long id) {
+        Drink drink = menuService.getDrinkById(id);
+        if (drink == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        drink.setAvailable(!drink.isAvailable());
+        Drink updatedDrink = menuService.saveDrink(drink);
+        return ResponseEntity.ok(updatedDrink);
+    }
+
+    @DeleteMapping("/drinks/{id}")
+    public ResponseEntity<Void> deleteDrink(@PathVariable Long id) {
+        Drink drink = menuService.getDrinkById(id);
+        if (drink == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        menuService.deleteDrink(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Get all items for admin (including unavailable ones)
+    @GetMapping("/meals")
+    public ResponseEntity<List<Meal>> getAllMealsForAdmin() {
+        List<Meal> meals = menuService.getAllMealsForAdmin();
+        return ResponseEntity.ok(meals);
+    }
+
+    @GetMapping("/drinks")
+    public ResponseEntity<List<Drink>> getAllDrinksForAdmin() {
+        List<Drink> drinks = menuService.getAllDrinksForAdmin();
+        return ResponseEntity.ok(drinks);
+    }
+}
