@@ -326,3 +326,7 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 Connect to the database from the terminal 
 - docker-compose exec postgres psql -U postgres -d restaurante_db
+
+## TODO
+
+- Add coupons functionnalities

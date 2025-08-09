@@ -63,4 +63,21 @@ public class OrderService {
         return orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
     }
+
+    // Admin methods
+    public List<Order> getAllOrdersForAdmin() {
+        return orderRepository.findAllByOrderByOrderDateDesc();
+    }
+
+    public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        
+        order.setStatus(status);
+        return orderRepository.save(order);
+    }
+
+    public List<Order> getOrdersByStatus(OrderStatus status) {
+        return orderRepository.findByStatusOrderByOrderDateDesc(status);
+    }
 }

@@ -9,10 +9,14 @@ import restaurante.backend.dto.DrinkDTO;
 import restaurante.backend.dto.MealDTO;
 import restaurante.backend.entity.Drink;
 import restaurante.backend.entity.Meal;
+import restaurante.backend.entity.Order;
+import restaurante.backend.entity.OrderStatus;
 import restaurante.backend.service.MenuService;
+import restaurante.backend.service.OrderService;
 
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -22,6 +26,9 @@ public class AdminController {
 
     @Autowired
     private MenuService menuService;
+
+    @Autowired
+    private OrderService orderService;
 
     // Meal Management
     @PostMapping("/meals")
@@ -154,5 +161,36 @@ public class AdminController {
     public ResponseEntity<List<Drink>> getAllDrinksForAdmin() {
         List<Drink> drinks = menuService.getAllDrinksForAdmin();
         return ResponseEntity.ok(drinks);
+    }
+
+    // Order Management
+    @GetMapping("/orders")
+    public ResponseEntity<List<Order>> getAllOrdersForAdmin() {
+        List<Order> orders = orderService.getAllOrdersForAdmin();
+        return ResponseEntity.ok(orders);
+    }
+
+    @PutMapping("/orders/{id}/status")
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> statusRequest) {
+        try {
+            OrderStatus status = OrderStatus.valueOf(statusRequest.get("status"));
+            Order updatedOrder = orderService.updateOrderStatus(id, status);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/orders/status/{status}")
+    public ResponseEntity<List<Order>> getOrdersByStatus(@PathVariable String status) {
+        try {
+            OrderStatus orderStatus = OrderStatus.valueOf(status.toUpperCase());
+            List<Order> orders = orderService.getOrdersByStatus(orderStatus);
+            return ResponseEntity.ok(orders);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
