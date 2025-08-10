@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import restaurante.backend.entity.*;
+import restaurante.backend.repository.CouponRepository;
 import restaurante.backend.repository.DrinkRepository;
 import restaurante.backend.repository.MealRepository;
 import restaurante.backend.repository.ProductRepository;
@@ -26,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private CouponRepository couponRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -83,6 +87,39 @@ public class DataInitializer implements CommandLineRunner {
             productRepository.save(new Product("Chicken Breast", "Fresh chicken breast", new BigDecimal("8.99"), 25, "kg"));
             productRepository.save(new Product("Mozzarella Cheese", "Fresh mozzarella cheese", new BigDecimal("12.99"), 15, "kg"));
             productRepository.save(new Product("Quinoa", "Organic quinoa", new BigDecimal("6.99"), 20, "kg"));
+        }
+
+        // Create sample coupons
+        if (couponRepository.count() == 0) {
+            // Cupón de bienvenida - 10% de descuento con compra mínima de ₡5,000
+            Coupon welcomeCoupon = new Coupon("Descuento Bienvenida", "WELCOME2024", 
+                Coupon.DiscountType.PERCENTAGE, new BigDecimal("10.00"));
+            welcomeCoupon.setMinimumPurchase(new BigDecimal("5000.00"));
+            couponRepository.save(welcomeCoupon);
+
+            // Oferta especial - ₡2,500 de descuento con compra mínima de ₡10,000
+            Coupon specialCoupon = new Coupon("Oferta Especial", "SPECIAL50OFF", 
+                Coupon.DiscountType.FIXED, new BigDecimal("2500.00"));
+            specialCoupon.setMinimumPurchase(new BigDecimal("10000.00"));
+            couponRepository.save(specialCoupon);
+
+            // Descuento VIP - 20% de descuento con compra mínima de ₡15,000
+            Coupon vipCoupon = new Coupon("Descuento VIP", "VIP20PERCENT", 
+                Coupon.DiscountType.PERCENTAGE, new BigDecimal("20.00"));
+            vipCoupon.setMinimumPurchase(new BigDecimal("15000.00"));
+            couponRepository.save(vipCoupon);
+
+            // Descuento sin mínimo - 5% de descuento sin compra mínima
+            Coupon noMinimumCoupon = new Coupon("Descuento Libre", "FREESAVE5PC", 
+                Coupon.DiscountType.PERCENTAGE, new BigDecimal("5.00"));
+            // Sin compra mínima (null)
+            couponRepository.save(noMinimumCoupon);
+
+            // Cupón inactivo para pruebas
+            Coupon inactiveCoupon = new Coupon("Cupón de Prueba", "TESTINACTIVE01", 
+                Coupon.DiscountType.PERCENTAGE, new BigDecimal("15.00"));
+            inactiveCoupon.setActive(false);
+            couponRepository.save(inactiveCoupon);
         }
     }
 }

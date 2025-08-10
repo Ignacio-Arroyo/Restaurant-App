@@ -82,3 +82,36 @@
 -- WHERE s.sale_date >= '2023-01-01'
 -- GROUP BY product_name, product_type
 -- ORDER BY total_revenue DESC;
+
+-- Coupons table will be created by Hibernate JPA
+-- Table: coupons
+-- - id (BIGSERIAL PRIMARY KEY)
+-- - name (VARCHAR NOT NULL) - Nombre descriptivo del cupón
+-- - code (VARCHAR(50) NOT NULL UNIQUE) - Código único del cupón (mínimo 10 caracteres)
+-- - active (BOOLEAN NOT NULL DEFAULT TRUE) - Si el cupón está activo
+-- - discount_type (VARCHAR NOT NULL) - Tipo de descuento: 'PERCENTAGE' o 'FIXED'
+-- - discount_value (DECIMAL(10,2) NOT NULL) - Valor del descuento (porcentaje o cantidad fija)
+-- - minimum_purchase (DECIMAL(10,2)) - Compra mínima requerida (opcional)
+-- - created_at (TIMESTAMP NOT NULL) - Fecha de creación
+-- - updated_at (TIMESTAMP NOT NULL) - Fecha de última actualización
+
+-- Insert sample coupons (examples - will be handled by DataInitializer.java)
+-- INSERT INTO coupons (name, code, active, discount_type, discount_value, minimum_purchase, created_at, updated_at) VALUES
+-- ('Descuento Bienvenida', 'WELCOME2024', true, 'PERCENTAGE', 10.00, 5000.00, NOW(), NOW()),
+-- ('Oferta Especial', 'SPECIAL50OFF', true, 'FIXED', 2500.00, 10000.00, NOW(), NOW()),
+-- ('Descuento VIP', 'VIP20PERCENT', true, 'PERCENTAGE', 20.00, 15000.00, NOW(), NOW()),
+-- ('Prueba Inactivo', 'INACTIVE001', false, 'PERCENTAGE', 5.00, null, NOW(), NOW());
+
+-- Coupon queries
+-- Validar cupón
+-- SELECT * FROM coupons WHERE code = 'WELCOME2024' AND active = true;
+
+-- Ver todos los cupones activos
+-- SELECT * FROM coupons WHERE active = true ORDER BY created_at DESC;
+
+-- Estadísticas de cupones
+-- SELECT 
+--   COUNT(*) as total_coupons,
+--   COUNT(CASE WHEN active = true THEN 1 END) as active_coupons,
+--   COUNT(CASE WHEN active = false THEN 1 END) as inactive_coupons
+-- FROM coupons;
