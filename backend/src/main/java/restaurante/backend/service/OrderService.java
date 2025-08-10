@@ -9,6 +9,8 @@ import restaurante.backend.repository.OrderRepository;
 import restaurante.backend.repository.UserRepository;
 import restaurante.backend.security.UserPrincipal;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,6 +24,9 @@ public class OrderService {
 
     @Autowired
     private MenuService menuService;
+
+    @Autowired
+    private SaleService saleService;
 
     public Order createOrder(OrderRequest orderRequest) {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -48,7 +53,14 @@ public class OrderService {
             savedOrder.getOrderDrinks().add(orderDrink);
         }
 
-        return orderRepository.save(savedOrder);
+        Order finalOrder = orderRepository.save(savedOrder);
+        
+        // Registrar venta automáticamente ya que la orden se considera pagada por defecto
+        if (finalOrder.getPaid()) {
+            registerSaleFromOrder(finalOrder);
+        }
+        
+        return finalOrder;
     }
 
     public List<Order> getUserOrders() {
@@ -74,10 +86,76 @@ public class OrderService {
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         
         order.setStatus(status);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        
+        return savedOrder;
+    }
+
+    private void registerSaleFromOrder(Order order) {
+        try {
+            // Crear la venta principal
+            String customerName = order.getUser() != null ? order.getUser().getEmail() : "Cliente Anónimo";
+            Double totalAmount = order.getTotalCost().doubleValue();
+            
+            Sale sale = new Sale(customerName, totalAmount, LocalDateTime.now());
+            
+            // Crear los items de venta
+            List<SaleItem> saleItems = new ArrayList<>();
+            
+            // Agregar meals
+            if (order.getOrderMeals() != null) {
+                for (OrderMeal orderMeal : order.getOrderMeals()) {
+                    SaleItem item = new SaleItem(
+                        sale,
+                        orderMeal.getMeal().getName(),
+                        "MEAL",
+                        orderMeal.getQuantity(),
+                        orderMeal.getMeal().getCost().doubleValue()
+                    );
+                    saleItems.add(item);
+                }
+            }
+            
+            // Agregar drinks
+            if (order.getOrderDrinks() != null) {
+                for (OrderDrink orderDrink : order.getOrderDrinks()) {
+                    SaleItem item = new SaleItem(
+                        sale,
+                        orderDrink.getDrink().getName(),
+                        "DRINK", 
+                        orderDrink.getQuantity(),
+                        orderDrink.getDrink().getPrice().doubleValue()
+                    );
+                    saleItems.add(item);
+                }
+            }
+            
+            sale.setItems(saleItems);
+            saleService.createSale(sale);
+            
+        } catch (Exception e) {
+            // Log el error pero no fallar la actualización del orden
+            System.err.println("Error registrando venta para orden " + order.getId() + ": " + e.getMessage());
+        }
     }
 
     public List<Order> getOrdersByStatus(OrderStatus status) {
         return orderRepository.findByStatusOrderByOrderDateDesc(status);
+    }
+
+    public Order updateOrderPaidStatus(Long orderId, Boolean paid) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+        
+        Boolean previousPaidStatus = order.getPaid();
+        order.setPaid(paid);
+        Order savedOrder = orderRepository.save(order);
+        
+        // Si cambia de no pagado a pagado, registrar la venta
+        if (paid && !previousPaidStatus) {
+            registerSaleFromOrder(savedOrder);
+        }
+        
+        return savedOrder;
     }
 }

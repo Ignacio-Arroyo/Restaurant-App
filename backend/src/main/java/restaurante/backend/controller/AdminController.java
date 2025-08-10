@@ -193,4 +193,15 @@ public class AdminController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/orders/{id}/paid")
+    public ResponseEntity<Order> updateOrderPaidStatus(@PathVariable Long id, @RequestBody Map<String, Boolean> paidRequest) {
+        try {
+            Boolean paid = paidRequest.get("paid");
+            Order updatedOrder = orderService.updateOrderPaidStatus(id, paid);
+            return ResponseEntity.ok(updatedOrder);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

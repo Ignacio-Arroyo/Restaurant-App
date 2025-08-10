@@ -34,6 +34,22 @@
 -- ('Mozzarella Cheese', 'Fresh mozzarella cheese', 12.99, 15, 'kg'),
 -- ('Quinoa', 'Organic quinoa', 6.99, 20, 'kg');
 
+-- Sales tables will be created by Hibernate JPA
+-- Table: sales
+-- - id (BIGSERIAL PRIMARY KEY)
+-- - customer_name (VARCHAR NOT NULL)
+-- - total_amount (DECIMAL NOT NULL)
+-- - sale_date (TIMESTAMP NOT NULL)
+
+-- Table: sale_items
+-- - id (BIGSERIAL PRIMARY KEY)
+-- - sale_id (BIGINT NOT NULL REFERENCES sales(id))
+-- - product_name (VARCHAR NOT NULL)
+-- - product_type (VARCHAR NOT NULL) -- 'MEAL' or 'DRINK'
+-- - quantity (INTEGER NOT NULL)
+-- - unit_price (DECIMAL NOT NULL)
+-- - total_price (DECIMAL NOT NULL)
+
 -- Useful queries for monitoring
 
 -- Check all users
@@ -52,3 +68,17 @@
 
 -- Check inventory
 -- SELECT * FROM products ORDER BY name;
+
+-- Sales queries
+-- SELECT * FROM sales ORDER BY sale_date DESC;
+-- SELECT s.id, s.customer_name, s.total_amount, s.sale_date, 
+--        si.product_name, si.product_type, si.quantity, si.unit_price, si.total_price
+-- FROM sales s LEFT JOIN sale_items si ON s.id = si.sale_id
+-- ORDER BY s.sale_date DESC;
+
+-- Sales statistics
+-- SELECT product_name, product_type, SUM(quantity) as total_quantity, SUM(total_price) as total_revenue
+-- FROM sale_items si JOIN sales s ON si.sale_id = s.id
+-- WHERE s.sale_date >= '2023-01-01'
+-- GROUP BY product_name, product_type
+-- ORDER BY total_revenue DESC;

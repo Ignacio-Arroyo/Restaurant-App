@@ -39,6 +39,9 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Column(name = "paid")
+    private Boolean paid = true; // Las órdenes se consideran pagadas por defecto al ser colocadas
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<OrderMeal> orderMeals;
@@ -116,6 +119,14 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public Boolean getPaid() {
+        return paid;
+    }
+
+    public void setPaid(Boolean paid) {
+        this.paid = paid;
     }
 
     public List<OrderMeal> getOrderMeals() {
