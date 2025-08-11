@@ -329,4 +329,6 @@ Connect to the database from the terminal
 
 ## TODO
 
-- Add coupons functionnalities
+- Add coupons functionnalities (CHECKED)
+- Add the API functions to deactivate a worker and deleted
+- Modify the currency used
