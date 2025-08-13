@@ -42,16 +42,10 @@ public class TimeEntryService {
         // Check if worker already has an active time entry (not checked out)
         Optional<TimeEntry> activeEntry = timeEntryRepository.findActiveTimeEntryByWorker(worker);
         if (activeEntry.isPresent()) {
-            throw new IllegalArgumentException("El empleado ya tiene una entrada activa sin marcar salida");
+            throw new IllegalArgumentException("El empleado ya tiene una entrada activa sin marcar salida. Debe marcar salida antes de poder marcar entrada nuevamente.");
         }
         
-        // Check if worker already checked in today
-        Optional<TimeEntry> todayEntry = timeEntryRepository.findByWorkerAndWorkDate(worker, today);
-        if (todayEntry.isPresent()) {
-            throw new IllegalArgumentException("El empleado ya marcó entrada para el día de hoy");
-        }
-        
-        // Create new time entry
+        // Create new time entry - Allow multiple check-ins per day as long as previous entries have check-out
         TimeEntry timeEntry = new TimeEntry(worker, LocalDateTime.now(), today);
         return timeEntryRepository.save(timeEntry);
     }
@@ -146,16 +140,15 @@ public class TimeEntryService {
                 return false;
             }
             
-            // Check if worker already has an active entry
+            // Check if worker already has an active entry (check-in without check-out)
             Optional<TimeEntry> activeEntry = timeEntryRepository.findActiveTimeEntryByWorker(worker);
             if (activeEntry.isPresent()) {
-                return false; // Can't check in if already checked in
+                return false; // Can't check in if already checked in and hasn't checked out
             }
             
-            // Check if worker already checked in today
-            String today = LocalDateTime.now().format(dateFormatter);
-            Optional<TimeEntry> todayEntry = timeEntryRepository.findByWorkerAndWorkDate(worker, today);
-            return todayEntry.isEmpty(); // Can check in if no entry for today
+            // Allow check-in if no active entry exists (regardless of previous entries today)
+            // This allows multiple check-ins per day as long as they have checked out between them
+            return true;
         } catch (Exception e) {
             return false;
         }

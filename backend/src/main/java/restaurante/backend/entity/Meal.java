@@ -38,6 +38,9 @@ public class Meal {
     @Column(name = "available", nullable = false)
     private boolean available = true;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     private MealType type;
 
@@ -128,6 +131,14 @@ public class Meal {
 
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     // Convenience method for price (alias for cost)

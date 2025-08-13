@@ -24,6 +24,8 @@ public class DrinkDTO {
     @NotNull
     private DrinkType type;
 
+    private String imageUrl;
+
     // Constructors
     public DrinkDTO() {}
 
@@ -83,5 +85,13 @@ public class DrinkDTO {
 
     public void setType(DrinkType type) {
         this.type = type;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

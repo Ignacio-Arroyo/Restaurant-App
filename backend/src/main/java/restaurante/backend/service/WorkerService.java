@@ -3,11 +3,14 @@ package restaurante.backend.service;
 import restaurante.backend.dto.CreateWorkerRequest;
 import restaurante.backend.entity.Worker;
 import restaurante.backend.entity.WorkerRole;
+import restaurante.backend.entity.TimeEntry;
 import restaurante.backend.repository.WorkerRepository;
+import restaurante.backend.repository.TimeEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -18,6 +21,9 @@ public class WorkerService {
     
     @Autowired
     private WorkerRepository workerRepository;
+    
+    @Autowired
+    private TimeEntryRepository timeEntryRepository;
     
     private final Random random = new Random();
     
@@ -95,6 +101,15 @@ public class WorkerService {
         Worker worker = workerRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Trabajador no encontrado"));
         
+        // Close any active time entry for the worker being deactivated
+        Optional<TimeEntry> activeEntry = timeEntryRepository.findActiveTimeEntryByWorker(worker);
+        if (activeEntry.isPresent()) {
+            TimeEntry entry = activeEntry.get();
+            entry.setCheckOutTime(LocalDateTime.now());
+            entry.setNotes("Checkout automático - empleado desactivado");
+            timeEntryRepository.save(entry);
+        }
+        
         worker.setActivo(false);
         workerRepository.save(worker);
     }
@@ -108,9 +123,13 @@ public class WorkerService {
     }
     
     public void deleteWorker(Long id) {
-        if (!workerRepository.existsById(id)) {
-            throw new IllegalArgumentException("Trabajador no encontrado");
-        }
+        Worker worker = workerRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Trabajador no encontrado"));
+        
+        // Delete all time entries associated with this worker first
+        timeEntryRepository.deleteByWorker(worker);
+        
+        // Now we can safely delete the worker
         workerRepository.deleteById(id);
     }
     

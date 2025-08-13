@@ -41,4 +41,7 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
     
     // Find today's time entries
     List<TimeEntry> findByWorkDate(String workDate);
+    
+    // Delete all time entries for a worker (used when deleting a worker)
+    void deleteByWorker(Worker worker);
 }

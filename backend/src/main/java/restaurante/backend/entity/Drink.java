@@ -32,6 +32,9 @@ public class Drink {
     @Column(name = "available", nullable = false)
     private boolean available = true;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(name = "size")
     private String size;
 
@@ -110,6 +113,14 @@ public class Drink {
 
     public void setAvailable(boolean available) {
         this.available = available;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public String getSize() {

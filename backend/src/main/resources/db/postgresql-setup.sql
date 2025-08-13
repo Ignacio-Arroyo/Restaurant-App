@@ -13,7 +13,14 @@
 -- INSERT INTO users (first_name, last_name, email, password, role, created_at) 
 -- VALUES ('Admin', 'User', 'admin@restaurant.com', '$2a$10$YourBCryptHashHere', 'ADMIN', NOW());
 
--- Insert sample meals
+-- Add image_url columns to existing tables (commented out - will be handled by Hibernate JPA)
+-- ALTER TABLE meals 
+-- ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
+
+-- ALTER TABLE drinks 
+-- ADD COLUMN IF NOT EXISTS image_url VARCHAR(500);
+
+-- Insert sample meals if they don't exist
 -- INSERT INTO meals (name, description, ingredients, allergens, cost, type) VALUES
 -- ('Margherita Pizza', 'Classic Italian pizza with tomato sauce, mozzarella, and fresh basil', 'Tomato sauce, mozzarella cheese, fresh basil, olive oil', 'Gluten, Dairy', 12.99, 'VEGETARIAN'),
 -- ('Grilled Chicken Breast', 'Tender grilled chicken breast with herbs and spices', 'Chicken breast, herbs, spices, olive oil', 'None', 16.99, 'MEAT'),

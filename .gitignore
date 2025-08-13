@@ -48,3 +48,9 @@ backend/.vscode/
 # OS
 .DS_Store
 Thumbs.db
+
+# File uploads (keep structure, ignore files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+!backend/uploads/meals/.gitkeep
+!backend/uploads/drinks/.gitkeep

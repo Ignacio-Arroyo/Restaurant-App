@@ -42,6 +42,7 @@ public class AdminController {
             meal.setType(mealDTO.getType());
             meal.setAllergens(mealDTO.getAllergens());
             meal.setAvailable(true); // Default to available
+            meal.setImageUrl(mealDTO.getImageUrl()); // Set image URL
             
             Meal savedMeal = menuService.saveMeal(meal);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedMeal);
@@ -63,6 +64,7 @@ public class AdminController {
         meal.setCost(mealDTO.getCost());
         meal.setType(mealDTO.getType());
         meal.setAllergens(mealDTO.getAllergens());
+        meal.setImageUrl(mealDTO.getImageUrl()); // Update image URL
         
         Meal updatedMeal = menuService.saveMeal(meal);
         return ResponseEntity.ok(updatedMeal);
@@ -102,6 +104,7 @@ public class AdminController {
             drink.setType(drinkDTO.getType());
             drink.setSize(drinkDTO.getSize());
             drink.setAvailable(true); // Default to available
+            drink.setImageUrl(drinkDTO.getImageUrl()); // Set image URL
             
             Drink savedDrink = menuService.saveDrink(drink);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedDrink);
@@ -122,6 +125,7 @@ public class AdminController {
         drink.setPrice(drinkDTO.getCost());
         drink.setType(drinkDTO.getType());
         drink.setSize(drinkDTO.getSize());
+        drink.setImageUrl(drinkDTO.getImageUrl()); // Update image URL
         
         Drink updatedDrink = menuService.saveDrink(drink);
         return ResponseEntity.ok(updatedDrink);

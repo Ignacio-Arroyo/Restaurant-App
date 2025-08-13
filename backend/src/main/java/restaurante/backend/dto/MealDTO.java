@@ -24,6 +24,8 @@ public class MealDTO {
     @NotNull
     private MealType type;
 
+    private String imageUrl;
+
     // Constructors
     public MealDTO() {}
 
@@ -83,5 +85,13 @@ public class MealDTO {
 
     public void setType(MealType type) {
         this.type = type;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
