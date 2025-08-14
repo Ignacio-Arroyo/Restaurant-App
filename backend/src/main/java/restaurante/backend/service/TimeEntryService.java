@@ -104,6 +104,12 @@ public class TimeEntryService {
         return timeEntryRepository.calculateTotalHoursByWorkerAndDateRange(worker, startDate, endDate);
     }
     
+    public Long getWorkerUniqueDaysWorked(Long workerId, String startDate, String endDate) {
+        Worker worker = workerRepository.findById(workerId)
+            .orElseThrow(() -> new IllegalArgumentException("Trabajador no encontrado"));
+        return timeEntryRepository.countUniqueDaysWorkedByWorkerAndDateRange(worker, startDate, endDate);
+    }
+    
     public Optional<TimeEntry> getWorkerActiveTimeEntry(String numeroEmpleado) {
         Worker worker = workerRepository.findByNumeroEmpleado(numeroEmpleado)
             .orElseThrow(() -> new IllegalArgumentException("Número de empleado no encontrado"));

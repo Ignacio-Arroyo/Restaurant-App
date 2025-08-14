@@ -7,6 +7,7 @@ import restaurante.backend.entity.TimeEntry;
 import restaurante.backend.repository.WorkerRepository;
 import restaurante.backend.repository.TimeEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class WorkerService {
     
     @Autowired
     private TimeEntryRepository timeEntryRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     private final Random random = new Random();
     
@@ -69,7 +73,7 @@ public class WorkerService {
             request.getRol(),
             numeroEmpleado,
             request.getNacionalidad(),
-            request.getPassword()
+            passwordEncoder.encode(request.getPassword()) // Cifrar la contraseña
         );
         
         return workerRepository.save(worker);
@@ -92,7 +96,11 @@ public class WorkerService {
         worker.setEmail(request.getEmail());
         worker.setRol(request.getRol());
         worker.setNacionalidad(request.getNacionalidad());
-        worker.setPassword(request.getPassword());
+        
+        // Solo cifrar la contraseña si se proporciona una nueva
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            worker.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
         
         return workerRepository.save(worker);
     }

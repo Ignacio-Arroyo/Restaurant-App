@@ -10,6 +10,7 @@ import restaurante.backend.repository.DrinkRepository;
 import restaurante.backend.repository.MealRepository;
 import restaurante.backend.repository.ProductRepository;
 import restaurante.backend.repository.UserRepository;
+import restaurante.backend.repository.WorkerRepository;
 
 import java.math.BigDecimal;
 
@@ -18,6 +19,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WorkerRepository workerRepository;
 
     @Autowired
     private MealRepository mealRepository;
@@ -45,6 +49,49 @@ public class DataInitializer implements CommandLineRunner {
             User admin = new User("Admin", "User", "admin@restaurant.com", passwordEncoder.encode("admin123"));
             admin.setRole(UserRole.ADMIN);
             userRepository.save(admin);
+        }
+
+        // Create sample workers for testing roles
+        if (workerRepository.count() == 0) {
+            // Gerente de ejemplo
+            if (workerRepository.findByEmail("gerente@restaurant.com").isEmpty()) {
+                Worker gerente = new Worker("Carlos", "Rodríguez", "San José", "8888-1234", 
+                    "gerente@restaurant.com", WorkerRole.GERENTE, "000001", "Costa Rica", 
+                    passwordEncoder.encode("gerente123"));
+                workerRepository.save(gerente);
+            }
+
+            // Cocinero de ejemplo
+            if (workerRepository.findByEmail("cocinero@restaurant.com").isEmpty()) {
+                Worker cocinero = new Worker("María", "González", "Cartago", "8888-5678", 
+                    "cocinero@restaurant.com", WorkerRole.COCINERO, "000002", "Costa Rica", 
+                    passwordEncoder.encode("cocinero123"));
+                workerRepository.save(cocinero);
+            }
+
+            // Mesero de ejemplo
+            if (workerRepository.findByEmail("mesero@restaurant.com").isEmpty()) {
+                Worker mesero = new Worker("José", "Mora", "Alajuela", "8888-9012", 
+                    "mesero@restaurant.com", WorkerRole.MESERO, "000003", "Costa Rica", 
+                    passwordEncoder.encode("mesero123"));
+                workerRepository.save(mesero);
+            }
+
+            // Cajero de ejemplo
+            if (workerRepository.findByEmail("cajero@restaurant.com").isEmpty()) {
+                Worker cajero = new Worker("Ana", "Castro", "Heredia", "8888-3456", 
+                    "cajero@restaurant.com", WorkerRole.CAJERO, "000004", "Costa Rica", 
+                    passwordEncoder.encode("cajero123"));
+                workerRepository.save(cajero);
+            }
+
+            // Afanador de ejemplo
+            if (workerRepository.findByEmail("afanador@restaurant.com").isEmpty()) {
+                Worker afanador = new Worker("Luis", "Vargas", "Puntarenas", "8888-7890", 
+                    "afanador@restaurant.com", WorkerRole.AFANADOR, "000005", "Costa Rica", 
+                    passwordEncoder.encode("afanador123"));
+                workerRepository.save(afanador);
+            }
         }
 
         // Create sample meals

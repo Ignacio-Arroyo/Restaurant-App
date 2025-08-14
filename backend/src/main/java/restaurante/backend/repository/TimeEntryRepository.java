@@ -39,6 +39,10 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntry, Long> {
     @Query("SELECT SUM(t.totalHours) FROM TimeEntry t WHERE t.worker = :worker AND t.workDate BETWEEN :startDate AND :endDate AND t.totalHours IS NOT NULL")
     Optional<Double> calculateTotalHoursByWorkerAndDateRange(@Param("worker") Worker worker, @Param("startDate") String startDate, @Param("endDate") String endDate);
     
+    // Count unique work dates for a worker in a date range
+    @Query("SELECT COUNT(DISTINCT t.workDate) FROM TimeEntry t WHERE t.worker = :worker AND t.workDate BETWEEN :startDate AND :endDate")
+    Long countUniqueDaysWorkedByWorkerAndDateRange(@Param("worker") Worker worker, @Param("startDate") String startDate, @Param("endDate") String endDate);
+    
     // Find today's time entries
     List<TimeEntry> findByWorkDate(String workDate);
     

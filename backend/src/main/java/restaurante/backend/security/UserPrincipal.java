@@ -4,6 +4,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import restaurante.backend.entity.User;
+import restaurante.backend.entity.Worker;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,19 @@ public class UserPrincipal implements UserDetails {
             user.getId(),
             user.getEmail(),
             user.getPassword(),
+            authorities
+        );
+    }
+    
+    public static UserPrincipal create(Worker worker) {
+        Collection<GrantedAuthority> authorities = Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_" + worker.getRol().name())
+        );
+
+        return new UserPrincipal(
+            worker.getId(),
+            worker.getEmail(),
+            worker.getPassword(),
             authorities
         );
     }

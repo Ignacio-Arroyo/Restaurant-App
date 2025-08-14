@@ -22,9 +22,9 @@ public class CouponController {
     @Autowired
     private CouponService couponService;
     
-    // Obtener todos los cupones (solo admin)
+    // Obtener todos los cupones (solo admin y gerente)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<CouponDTO>> getAllCoupons() {
         try {
             List<CouponDTO> coupons = couponService.getAllCoupons();
@@ -34,9 +34,9 @@ public class CouponController {
         }
     }
     
-    // Obtener cupones activos (solo admin)
+    // Obtener cupones activos (solo admin y gerente)
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<CouponDTO>> getActiveCoupons() {
         try {
             List<CouponDTO> activeCoupons = couponService.getActiveCoupons();
@@ -46,9 +46,9 @@ public class CouponController {
         }
     }
     
-    // Obtener cupón por ID (solo admin)
+    // Obtener cupón por ID (solo admin y gerente)
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<CouponDTO> getCouponById(@PathVariable Long id) {
         try {
             Optional<CouponDTO> coupon = couponService.getCouponById(id);
@@ -59,9 +59,9 @@ public class CouponController {
         }
     }
     
-    // Crear nuevo cupón (solo admin)
+    // Crear nuevo cupón (solo admin y gerente)
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> createCoupon(@Valid @RequestBody CouponDTO couponDTO) {
         try {
             CouponDTO createdCoupon = couponService.createCoupon(couponDTO);
@@ -74,9 +74,9 @@ public class CouponController {
         }
     }
     
-    // Actualizar cupón (solo admin)
+    // Actualizar cupón (solo admin y gerente)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> updateCoupon(@PathVariable Long id, 
                                         @Valid @RequestBody CouponDTO couponDTO) {
         try {
@@ -90,9 +90,9 @@ public class CouponController {
         }
     }
     
-    // Eliminar cupón (solo admin)
+    // Eliminar cupón (solo admin y gerente)
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> deleteCoupon(@PathVariable Long id) {
         try {
             couponService.deleteCoupon(id);
@@ -105,9 +105,9 @@ public class CouponController {
         }
     }
     
-    // Activar/Desactivar cupón (solo admin)
+    // Activar/Desactivar cupón (solo admin y gerente)
     @PatchMapping("/{id}/toggle-status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> toggleCouponStatus(@PathVariable Long id) {
         try {
             CouponDTO updatedCoupon = couponService.toggleCouponStatus(id);
@@ -133,9 +133,9 @@ public class CouponController {
         }
     }
     
-    // Buscar cupones por nombre (solo admin)
+    // Buscar cupones por nombre (solo admin y gerente)
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<CouponDTO>> searchCoupons(@RequestParam String name) {
         try {
             List<CouponDTO> coupons = couponService.searchCouponsByName(name);
@@ -145,9 +145,9 @@ public class CouponController {
         }
     }
     
-    // Obtener estadísticas de cupones (solo admin)
+    // Obtener estadísticas de cupones (solo admin y gerente)
     @GetMapping("/statistics")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<CouponService.CouponStatistics> getCouponStatistics() {
         try {
             CouponService.CouponStatistics stats = couponService.getCouponStatistics();

@@ -34,7 +34,7 @@ public class SaleController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<Sale>> getAllSales() {
         try {
             List<Sale> sales = saleService.getAllSales();
@@ -56,7 +56,7 @@ public class SaleController {
     }
 
     @GetMapping("/today")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<Sale>> getTodaySales() {
         try {
             List<Sale> sales = saleService.getTodaySales();
@@ -67,7 +67,7 @@ public class SaleController {
     }
 
     @GetMapping("/recent")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<Sale>> getRecentSales() {
         try {
             List<Sale> sales = saleService.getRecentSales();
@@ -78,7 +78,7 @@ public class SaleController {
     }
 
     @GetMapping("/report")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<SalesReportDTO> getSalesReport(
             @RequestParam String startDate,
             @RequestParam String endDate) {
@@ -95,7 +95,7 @@ public class SaleController {
     }
 
     @GetMapping("/stats/products")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<ProductStatsDTO>> getProductStats(
             @RequestParam String startDate,
             @RequestParam String endDate,
@@ -121,7 +121,7 @@ public class SaleController {
     }
 
     @GetMapping("/stats/most-sold")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<ProductStatsDTO>> getMostSoldProducts(
             @RequestParam String startDate,
             @RequestParam String endDate) {
@@ -138,7 +138,7 @@ public class SaleController {
     }
 
     @GetMapping("/revenue")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<Double> getTotalRevenue(
             @RequestParam String startDate,
             @RequestParam String endDate) {

@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -66,7 +68,9 @@ public class SecurityConfig {
                     .requestMatchers("/api/menu/**").permitAll()
                     .requestMatchers("/api/coupons/validate").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll() // Allow public access to file serving (GET only)
-                    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/admin/products/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
+                    .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE")
+                    .requestMatchers("/api/coupons/**").hasAnyRole("ADMIN", "GERENTE")
                     .requestMatchers("/actuator/health").permitAll()
                     .anyRequest().authenticated()
             );

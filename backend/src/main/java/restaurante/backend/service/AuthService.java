@@ -11,7 +11,9 @@ import restaurante.backend.dto.LoginRequest;
 import restaurante.backend.dto.RegisterRequest;
 import restaurante.backend.entity.User;
 import restaurante.backend.entity.UserRole;
+import restaurante.backend.entity.Worker;
 import restaurante.backend.repository.UserRepository;
+import restaurante.backend.repository.WorkerRepository;
 import restaurante.backend.security.JwtUtils;
 import restaurante.backend.security.UserPrincipal;
 
@@ -20,6 +22,9 @@ public class AuthService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private WorkerRepository workerRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -31,22 +36,43 @@ public class AuthService {
     private JwtUtils jwtUtils;
 
     public AuthResponse login(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
+        // Primero intentar autenticar como Worker
+        Worker worker = workerRepository.findByEmail(loginRequest.getEmail()).orElse(null);
+        
+        if (worker != null && worker.isActivo() && 
+            passwordEncoder.matches(loginRequest.getPassword(), worker.getPassword())) {
+            
+            String jwt = jwtUtils.generateJwtToken(worker.getEmail(), worker.getRol().name());
+            return new AuthResponse(jwt, worker.getEmail(), worker.getNombre(), 
+                                   worker.getApellido(), worker.getRol().name());
+        }
+        
+        // Si no es un worker, intentar autenticar como User normal
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+            );
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        String jwt = jwtUtils.generateJwtToken(userPrincipal.getUsername());
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+            
+            User user = userRepository.findByEmail(userPrincipal.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            String jwt = jwtUtils.generateJwtToken(userPrincipal.getUsername(), user.getRole().name());
 
-        User user = userRepository.findByEmail(userPrincipal.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return new AuthResponse(jwt, user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().name());
+            return new AuthResponse(jwt, user.getEmail(), user.getFirstName(), user.getLastName(), user.getRole().name());
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid email or password");
+        }
     }
 
     public AuthResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new RuntimeException("Email is already taken!");
+        }
+        
+        if (workerRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new RuntimeException("Email is already taken by a worker!");
         }
 
         User user = new User(
@@ -59,7 +85,7 @@ public class AuthService {
         user.setRole(UserRole.CUSTOMER);
         User savedUser = userRepository.save(user);
 
-        String jwt = jwtUtils.generateJwtToken(savedUser.getEmail());
+        String jwt = jwtUtils.generateJwtToken(savedUser.getEmail(), savedUser.getRole().name());
 
         return new AuthResponse(jwt, savedUser.getEmail(), savedUser.getFirstName(), 
                                savedUser.getLastName(), savedUser.getRole().name());

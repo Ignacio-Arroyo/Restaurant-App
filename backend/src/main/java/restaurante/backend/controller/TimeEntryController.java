@@ -23,7 +23,7 @@ public class TimeEntryController {
     private TimeEntryService timeEntryService;
     
     @PostMapping("/check-in")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO') or hasRole('MESERO') or hasRole('CAJERO') or hasRole('AFANADOR')")
     public ResponseEntity<?> checkIn(@RequestBody CheckInRequest request) {
         try {
             TimeEntry timeEntry = timeEntryService.checkIn(request);
@@ -44,7 +44,7 @@ public class TimeEntryController {
     }
     
     @PostMapping("/check-out")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO') or hasRole('MESERO') or hasRole('CAJERO') or hasRole('AFANADOR')")
     public ResponseEntity<?> checkOut(@RequestBody CheckOutRequest request) {
         try {
             TimeEntry timeEntry = timeEntryService.checkOut(request);
@@ -66,7 +66,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/today")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<TimeEntry>> getTodayTimeEntries() {
         try {
             List<TimeEntry> timeEntries = timeEntryService.getTodayTimeEntries();
@@ -77,7 +77,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<TimeEntry>> getActiveTimeEntries() {
         try {
             List<TimeEntry> timeEntries = timeEntryService.getActiveTimeEntries();
@@ -88,7 +88,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/worker/{workerId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<TimeEntry>> getWorkerTimeEntries(@PathVariable Long workerId) {
         try {
             List<TimeEntry> timeEntries = timeEntryService.getWorkerTimeEntries(workerId);
@@ -101,7 +101,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/date-range")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<List<TimeEntry>> getTimeEntriesByDateRange(
             @RequestParam String startDate, 
             @RequestParam String endDate) {
@@ -114,7 +114,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/worker/{workerId}/hours")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> getWorkerTotalHours(
             @PathVariable Long workerId,
             @RequestParam String startDate, 
@@ -136,8 +136,40 @@ public class TimeEntryController {
         }
     }
     
+    @GetMapping("/worker/{workerId}/days")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
+    public ResponseEntity<?> getWorkerUniqueDaysWorked(
+            @PathVariable Long workerId,
+            @RequestParam String startDate, 
+            @RequestParam String endDate) {
+        try {
+            Long uniqueDays = timeEntryService.getWorkerUniqueDaysWorked(workerId, startDate, endDate);
+            Optional<Double> totalHours = timeEntryService.getWorkerTotalHours(workerId, startDate, endDate);
+            
+            double averageHoursPerDay = 0.0;
+            if (uniqueDays > 0 && totalHours.isPresent()) {
+                averageHoursPerDay = totalHours.get() / uniqueDays;
+            }
+            
+            return ResponseEntity.ok(Map.of(
+                "workerId", workerId,
+                "startDate", startDate,
+                "endDate", endDate,
+                "uniqueDaysWorked", uniqueDays,
+                "totalHours", totalHours.orElse(0.0),
+                "averageHoursPerDay", Math.round(averageHoursPerDay * 10.0) / 10.0
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                                .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+    
     @GetMapping("/worker/status/{numeroEmpleado}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> getWorkerStatus(@PathVariable String numeroEmpleado) {
         try {
             Optional<TimeEntry> activeEntry = timeEntryService.getWorkerActiveTimeEntry(numeroEmpleado);
@@ -181,7 +213,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/worker/can-check-in/{numeroEmpleado}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> canWorkerCheckIn(@PathVariable String numeroEmpleado) {
         try {
             boolean canCheckIn = timeEntryService.canWorkerCheckIn(numeroEmpleado);
@@ -198,7 +230,7 @@ public class TimeEntryController {
     }
     
     @GetMapping("/worker/can-check-out/{numeroEmpleado}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
     public ResponseEntity<?> canWorkerCheckOut(@PathVariable String numeroEmpleado) {
         try {
             boolean canCheckOut = timeEntryService.canWorkerCheckOut(numeroEmpleado);

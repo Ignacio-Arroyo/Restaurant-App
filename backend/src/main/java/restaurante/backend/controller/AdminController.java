@@ -20,7 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
 @CrossOrigin(origins = {"http://localhost:3000", "http://frontend"})
 public class AdminController {
 

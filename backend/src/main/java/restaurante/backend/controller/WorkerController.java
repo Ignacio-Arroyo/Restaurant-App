@@ -16,7 +16,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin/workers")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
 @CrossOrigin(origins = "http://localhost:3000")
 public class WorkerController {
     
