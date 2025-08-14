@@ -66,10 +66,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/menu/**").permitAll()
+                    .requestMatchers("/api/debug/**").permitAll()  // Allow debug endpoints
                     .requestMatchers("/api/coupons/validate").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll() // Allow public access to file serving (GET only)
                     .requestMatchers("/api/admin/products/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
-                    .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE")
+                    // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE") // Commented out - too general
+                    .requestMatchers("/api/admin/orders/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
+                    .requestMatchers("/api/admin/workers/**").hasAnyRole("ADMIN", "GERENTE")
+                    .requestMatchers("/api/admin/time-entries/**").hasAnyRole("ADMIN", "GERENTE")
                     .requestMatchers("/api/coupons/**").hasAnyRole("ADMIN", "GERENTE")
                     .requestMatchers("/actuator/health").permitAll()
                     .anyRequest().authenticated()

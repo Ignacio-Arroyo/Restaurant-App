@@ -19,13 +19,13 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
     public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
+    // @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {
         try {
             return ResponseEntity.ok(productService.getProductById(id));
@@ -62,7 +62,7 @@ public class ProductController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE')")
+    // @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam String name) {
         return ResponseEntity.ok(productService.searchProducts(name));
     }
