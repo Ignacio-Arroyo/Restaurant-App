@@ -68,7 +68,9 @@ public class SecurityConfig {
                     .requestMatchers("/api/menu/**").permitAll()
                     .requestMatchers("/api/debug/**").permitAll()  // Allow debug endpoints
                     .requestMatchers("/api/coupons/validate").permitAll()
+                    .requestMatchers("/api/payments/webhook").permitAll() // Allow Stripe webhooks
                     .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll() // Allow public access to file serving (GET only)
+                    .requestMatchers("/api/payments/**").authenticated() // Require auth for payments (except webhook)
                     .requestMatchers("/api/admin/products/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
                     // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE") // Commented out - too general
                     .requestMatchers("/api/admin/orders/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
