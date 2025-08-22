@@ -28,6 +28,9 @@ public class OrderService {
     @Autowired
     private SaleService saleService;
 
+    @Autowired
+    private EmailService emailService;
+
     public Order createOrder(OrderRequest orderRequest) {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(userPrincipal.getUsername())
@@ -60,6 +63,14 @@ public class OrderService {
             registerSaleFromOrder(finalOrder);
         }
         
+        // Enviar email de confirmación de orden
+        try {
+            emailService.sendOrderConfirmationEmail(finalOrder);
+        } catch (Exception e) {
+            // Log del error pero no fallar la creación de la orden
+            System.err.println("Error sending order confirmation email for order " + finalOrder.getId() + ": " + e.getMessage());
+        }
+        
         return finalOrder;
     }
 
@@ -85,8 +96,19 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         
+        OrderStatus previousStatus = order.getStatus();
         order.setStatus(status);
         Order savedOrder = orderRepository.save(order);
+        
+        // Enviar email cuando el pedido esté listo
+        if (status == OrderStatus.READY && previousStatus != OrderStatus.READY) {
+            try {
+                emailService.sendOrderReadyEmail(savedOrder);
+            } catch (Exception e) {
+                // Log del error pero no fallar la actualización del estado
+                System.err.println("Error sending order ready email for order " + savedOrder.getId() + ": " + e.getMessage());
+            }
+        }
         
         return savedOrder;
     }

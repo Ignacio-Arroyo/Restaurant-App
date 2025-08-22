@@ -35,6 +35,9 @@ public class AuthService {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private EmailService emailService;
+
     public AuthResponse login(LoginRequest loginRequest) {
         // Primero intentar autenticar como Worker
         Worker worker = workerRepository.findByEmail(loginRequest.getEmail()).orElse(null);
@@ -84,6 +87,18 @@ public class AuthService {
 
         user.setRole(UserRole.CUSTOMER);
         User savedUser = userRepository.save(user);
+
+        // Enviar email de bienvenida de forma asíncrona
+        try {
+            emailService.sendWelcomeEmail(
+                savedUser.getEmail(), 
+                savedUser.getFirstName(), 
+                savedUser.getLastName()
+            );
+        } catch (Exception e) {
+            // Log del error pero no afectar el registro
+            System.err.println("Error sending welcome email: " + e.getMessage());
+        }
 
         String jwt = jwtUtils.generateJwtToken(savedUser.getEmail(), savedUser.getRole().name());
 
