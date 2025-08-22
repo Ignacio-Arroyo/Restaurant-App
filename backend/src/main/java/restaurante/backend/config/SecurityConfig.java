@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -66,12 +65,12 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/menu/**").permitAll()
+                    .requestMatchers("/api/files/**").permitAll() // Allow public access to file serving
                     .requestMatchers("/api/legal/**").permitAll() // Permitir páginas legales públicas
                     .requestMatchers("/api/unsubscribe").permitAll() // Permitir unsubscribe público
                     .requestMatchers("/api/debug/**").permitAll()  // Allow debug endpoints
                     .requestMatchers("/api/coupons/validate").permitAll()
                     .requestMatchers("/api/payments/webhook").permitAll() // Allow Stripe webhooks
-                    .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll() // Allow public access to file serving (GET only)
                     .requestMatchers("/api/payments/**").authenticated() // Require auth for payments (except webhook)
                     .requestMatchers("/api/admin/products/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
                     // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE") // Commented out - too general
