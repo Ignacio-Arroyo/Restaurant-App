@@ -38,6 +38,9 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private ConsentService consentService;
+
     public AuthResponse login(LoginRequest loginRequest) {
         // Primero intentar autenticar como Worker
         Worker worker = workerRepository.findByEmail(loginRequest.getEmail()).orElse(null);
@@ -87,6 +90,20 @@ public class AuthService {
 
         user.setRole(UserRole.CUSTOMER);
         User savedUser = userRepository.save(user);
+
+        // Registrar consentimientos requeridos (todos true por defecto en el registro)
+        try {
+            consentService.recordRegistrationConsents(
+                savedUser, 
+                true, // términos y condiciones (requerido)
+                true, // política de privacidad (requerido)
+                registerRequest.getMarketingConsent() != null ? registerRequest.getMarketingConsent() : false, // marketing (opcional)
+                registerRequest.getIpAddress(),
+                registerRequest.getUserAgent()
+            );
+        } catch (Exception e) {
+            System.err.println("Error recording consents: " + e.getMessage());
+        }
 
         // Enviar email de bienvenida de forma asíncrona
         try {

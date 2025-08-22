@@ -31,6 +31,9 @@ public class EmailService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ConsentService consentService;
+
     @Value("${restaurant.email:noreply@restaurant.com}")
     private String fromEmail;
 
@@ -42,6 +45,9 @@ public class EmailService {
 
     @Value("${restaurant.address:123 Restaurant Street, Food City, FC 12345}")
     private String restaurantAddress;
+
+    @Value("${frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Async("emailTaskExecutor")
     public void sendWelcomeEmail(String toEmail, String firstName, String lastName) {
@@ -481,28 +487,32 @@ public class EmailService {
 
     public void sendMarketingEmailToAllCustomers(String subject, String content) {
         try {
-            List<User> customers = userRepository.findByRole(restaurante.backend.entity.UserRole.CUSTOMER);
+            // Obtener solo usuarios que han dado consentimiento para marketing
+            List<User> customers = consentService.getUsersWithMarketingConsent();
             List<String> emails = customers.stream()
                 .map(User::getEmail)
                 .filter(email -> email != null && !email.isEmpty())
                 .toList();
             
             if (emails.isEmpty()) {
-                logger.warn("No customer emails found for marketing campaign");
+                logger.warn("No customers with marketing consent found for campaign");
                 return;
             }
             
-            logger.info("Starting marketing campaign to {} customers", emails.size());
+            logger.info("Starting marketing campaign to {} customers with marketing consent", emails.size());
             sendMarketingEmail(subject, content, emails);
             
         } catch (Exception e) {
-            logger.error("Error retrieving customers for marketing campaign: {}", e.getMessage());
+            logger.error("Error retrieving customers with marketing consent: {}", e.getMessage());
         }
     }
 
     private String buildMarketingEmailContent(String subject, String content, String recipientEmail) {
         // Convertir saltos de línea a <br> para HTML
         String htmlContent = content.replace("\n", "<br>");
+        
+        // Crear URL de unsubscribe
+        String unsubscribeUrl = frontendUrl + "/unsubscribe?email=" + recipientEmail;
         
         return String.format("""
             <!DOCTYPE html>
@@ -516,7 +526,9 @@ public class EmailService {
                     .content { padding: 30px 20px; background-color: #f9f9f9; }
                     .footer { background-color: #333; color: white; padding: 15px; text-align: center; font-size: 12px; }
                     .button { display: inline-block; padding: 12px 24px; background-color: #d32f2f; color: white; text-decoration: none; border-radius: 5px; margin: 15px 0; }
-                    .unsubscribe { font-size: 11px; color: #666; margin-top: 20px; }
+                    .unsubscribe { font-size: 11px; color: #666; margin-top: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 5px; }
+                    .unsubscribe a { color: #d32f2f; text-decoration: none; }
+                    .gdpr-notice { font-size: 10px; color: #999; margin-top: 10px; }
                 </style>
             </head>
             <body>
@@ -531,7 +543,7 @@ public class EmailService {
                         </div>
                         
                         <div style="text-align: center; margin: 30px 0;">
-                            <a href="http://192.168.1.152:3000/menu" class="button">Ver Nuestro Menú</a>
+                            <a href="%s/menu" class="button">Ver Nuestro Menú</a>
                         </div>
                         
                         <p style="text-align: center; margin-top: 30px;">
@@ -540,8 +552,15 @@ public class EmailService {
                         </p>
                         
                         <div class="unsubscribe">
-                            <p>Has recibido este email porque eres cliente de %s.</p>
-                            <p>Si no deseas recibir más emails promocionales, puedes contactarnos en %s</p>
+                            <p><strong>Gestión de Suscripción</strong></p>
+                            <p>Has recibido este email porque has dado tu consentimiento para recibir comunicaciones promocionales de %s.</p>
+                            <p>Si no deseas recibir más emails promocionales, puedes <a href="%s">darte de baja aquí</a>.</p>
+                            <p>También puedes gestionar tus preferencias de comunicación desde tu <a href="%s/profile">perfil de usuario</a>.</p>
+                            
+                            <div class="gdpr-notice">
+                                <p><strong>Cumplimiento GDPR:</strong> Procesamos tus datos conforme a nuestra <a href="%s/legal/privacy">Política de Privacidad</a>. 
+                                Tienes derecho a acceder, rectificar, eliminar o portar tus datos. Para ejercer estos derechos, contáctanos en privacy@restaurant.com</p>
+                            </div>
                         </div>
                     </div>
                     <div class="footer">
@@ -549,6 +568,8 @@ public class EmailService {
                         <p>📍 %s</p>
                         <p>📞 %s</p>
                         <p>Email: %s</p>
+                        <p><a href="%s/legal/terms" style="color: #ccc;">Términos y Condiciones</a> | 
+                           <a href="%s/legal/privacy" style="color: #ccc;">Política de Privacidad</a></p>
                     </div>
                 </div>
             </body>
@@ -557,12 +578,17 @@ public class EmailService {
             subject,
             restaurantName,
             htmlContent,
+            frontendUrl,
             restaurantName,
             restaurantName,
-            fromEmail,
+            unsubscribeUrl,
+            frontendUrl,
+            frontendUrl,
             restaurantName,
             restaurantAddress,
             restaurantPhone,
-            fromEmail);
+            fromEmail,
+            frontendUrl,
+            frontendUrl);
     }
 }

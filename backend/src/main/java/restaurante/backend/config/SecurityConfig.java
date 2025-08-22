@@ -66,6 +66,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/menu/**").permitAll()
+                    .requestMatchers("/api/legal/**").permitAll() // Permitir páginas legales públicas
+                    .requestMatchers("/api/unsubscribe").permitAll() // Permitir unsubscribe público
                     .requestMatchers("/api/debug/**").permitAll()  // Allow debug endpoints
                     .requestMatchers("/api/coupons/validate").permitAll()
                     .requestMatchers("/api/payments/webhook").permitAll() // Allow Stripe webhooks
