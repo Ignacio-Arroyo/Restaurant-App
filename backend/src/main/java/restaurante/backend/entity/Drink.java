@@ -48,6 +48,10 @@ public class Drink {
     @JsonIgnore
     private List<OrderDrink> orderDrinks;
 
+    @OneToMany(mappedBy = "drink", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<DrinkInventory> drinkInventories;
+
     // Constructors
     public Drink() {}
 
@@ -146,5 +150,13 @@ public class Drink {
 
     public void setPrice(BigDecimal price) {
         this.cost = price;
+    }
+
+    public List<DrinkInventory> getDrinkInventories() {
+        return drinkInventories;
+    }
+
+    public void setDrinkInventories(List<DrinkInventory> drinkInventories) {
+        this.drinkInventories = drinkInventories;
     }
 }

@@ -50,11 +50,16 @@ public class Order {
     @JsonManagedReference
     private List<OrderDrink> orderDrinks;
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<OrderPromotion> orderPromotions;
+
     // Constructors
     public Order() {
         this.orderDate = LocalDateTime.now();
         this.orderMeals = new ArrayList<>();
         this.orderDrinks = new ArrayList<>();
+        this.orderPromotions = new ArrayList<>();
     }
 
     public Order(User user, BigDecimal totalCost, OrderType orderType) {
@@ -143,5 +148,13 @@ public class Order {
 
     public void setOrderDrinks(List<OrderDrink> orderDrinks) {
         this.orderDrinks = orderDrinks;
+    }
+
+    public List<OrderPromotion> getOrderPromotions() {
+        return orderPromotions;
+    }
+
+    public void setOrderPromotions(List<OrderPromotion> orderPromotions) {
+        this.orderPromotions = orderPromotions;
     }
 }

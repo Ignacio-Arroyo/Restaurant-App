@@ -29,6 +29,9 @@ public class OrderService {
     private SaleService saleService;
 
     @Autowired
+    private InventoryService inventoryService;
+
+    @Autowired
     private EmailService emailService;
 
     public Order createOrder(OrderRequest orderRequest) {
@@ -100,13 +103,17 @@ public class OrderService {
         order.setStatus(status);
         Order savedOrder = orderRepository.save(order);
         
-        // Enviar email cuando el pedido esté listo
+        // Procesar cuando el pedido esté listo
         if (status == OrderStatus.READY && previousStatus != OrderStatus.READY) {
             try {
+                // Reducir inventario automáticamente
+                inventoryService.processOrderCompletion(savedOrder);
+                
+                // Enviar email cuando el pedido esté listo
                 emailService.sendOrderReadyEmail(savedOrder);
             } catch (Exception e) {
                 // Log del error pero no fallar la actualización del estado
-                System.err.println("Error sending order ready email for order " + savedOrder.getId() + ": " + e.getMessage());
+                System.err.println("Error processing order completion for order " + savedOrder.getId() + ": " + e.getMessage());
             }
         }
         
