@@ -9,10 +9,12 @@ import restaurante.backend.repository.CouponRepository;
 import restaurante.backend.repository.DrinkRepository;
 import restaurante.backend.repository.MealRepository;
 import restaurante.backend.repository.ProductRepository;
+import restaurante.backend.repository.PromotionRepository;
 import restaurante.backend.repository.UserRepository;
 import restaurante.backend.repository.WorkerRepository;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -34,6 +36,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private CouponRepository couponRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -167,6 +172,48 @@ public class DataInitializer implements CommandLineRunner {
                 Coupon.DiscountType.PERCENTAGE, new BigDecimal("15.00"));
             inactiveCoupon.setActive(false);
             couponRepository.save(inactiveCoupon);
+        }
+
+        // Create sample promotions
+        if (promotionRepository.count() == 0) {
+            // Promoción de descuento - 15% en todos los platillos
+            Promotion discountPromotion = new Promotion("Descuento 15% en Platillos", 
+                "¡Ahorra 15% en todos nuestros platillos principales!", 
+                Promotion.PromotionType.DISCOUNT);
+            discountPromotion.setDiscountPercentage(new BigDecimal("15.00"));
+            discountPromotion.setImageUrl("/images/promotions/discount-15.jpg");
+            promotionRepository.save(discountPromotion);
+
+            // Combo familiar - Pizza + Bebidas
+            if (mealRepository.count() > 0 && drinkRepository.count() > 0) {
+                List<Meal> pizzaMeals = mealRepository.findByNameContainingIgnoreCase("pizza");
+                List<Drink> drinks = drinkRepository.findAll();
+                
+                if (!pizzaMeals.isEmpty() && !drinks.isEmpty()) {
+                    Promotion comboPromotion = new Promotion("Combo Familiar", 
+                        "Pizza Margherita + 2 Coca Colas por un precio especial", 
+                        Promotion.PromotionType.COMBO);
+                    comboPromotion.setComboPrice(new BigDecimal("18.99"));
+                    
+                    // Agregar una pizza y una bebida al combo
+                    comboPromotion.setMeals(pizzaMeals.subList(0, 1));
+                    comboPromotion.setDrinks(drinks.stream()
+                        .filter(drink -> drink.getName().toLowerCase().contains("coca"))
+                        .limit(1)
+                        .collect(java.util.stream.Collectors.toList()));
+                    
+                    comboPromotion.setImageUrl("/images/promotions/combo-familiar.jpg");
+                    promotionRepository.save(comboPromotion);
+                }
+            }
+
+            // Promoción de descuento para veganos - 20% en platillos veganos
+            Promotion veganPromotion = new Promotion("Especial Vegano", 
+                "20% de descuento en todos nuestros platillos veganos", 
+                Promotion.PromotionType.DISCOUNT);
+            veganPromotion.setDiscountPercentage(new BigDecimal("20.00"));
+            veganPromotion.setImageUrl("/images/promotions/vegan-special.jpg");
+            promotionRepository.save(veganPromotion);
         }
     }
 }

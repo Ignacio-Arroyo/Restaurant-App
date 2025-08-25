@@ -1,6 +1,28 @@
 # Restaurant Management System
 
-A full-stack web application for restaurant management with inventory tracking and customer ordering functionality.
+Una aplicación web completa y modular para la gestión de restaurantes con seguimiento de inventario y funcionalidad de pedidos de clientes.
+
+## 🎯 **Aplicación Modular**
+
+**Esta aplicación está diseñada para ser fácilmente adaptable a diferentes restaurantes.** Toda la información específica del restaurante se puede personalizar desde archivos de configuración centralizados.
+
+### 🚀 Configuración Rápida
+
+```bash
+# Usar el configurador automático
+./configure-restaurant.sh    # Linux/Mac
+configure-restaurant.bat     # Windows
+
+# O configurar manualmente
+cp .env.example .env
+# Editar .env con tu información
+```
+
+### 📁 Archivos de Configuración
+
+- `.env` - Configuración del backend (email, información del restaurante)
+- `frontend/src/config/restaurant.config.ts` - Configuración del frontend
+- Ver `RESTAURANT-CONFIG.md` para guía completa
 
 ## Features
 
@@ -17,12 +39,14 @@ A full-stack web application for restaurant management with inventory tracking a
 - **Inventory Management**: Add, edit, and delete products used in the kitchen
 - **Product Search**: Find products by name
 - **Stock Tracking**: Monitor quantity and costs of inventory items
+- **Restaurant Configuration**: Panel de administración para personalizar información del restaurante
 
 ### Technical Features
 - **JWT Authentication**: Secure user sessions
 - **Role-based Access**: Customer and Admin roles
 - **RESTful API**: Well-structured backend API
 - **Responsive Design**: Works on desktop and mobile devices
+- **Modular Configuration**: Easy adaptation for different restaurants
 
 ## Tech Stack
 

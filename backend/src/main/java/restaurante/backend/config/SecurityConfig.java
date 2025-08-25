@@ -65,6 +65,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/menu/**").permitAll()
+                    .requestMatchers("/api/promotions/**").permitAll() // Permitir acceso público a promociones
                     .requestMatchers("/api/files/**").permitAll() // Allow public access to file serving
                     .requestMatchers("/api/legal/**").permitAll() // Permitir páginas legales públicas
                     .requestMatchers("/api/unsubscribe").permitAll() // Permitir unsubscribe público
