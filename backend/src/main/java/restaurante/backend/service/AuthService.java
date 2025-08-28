@@ -50,7 +50,7 @@ public class AuthService {
             
             String jwt = jwtUtils.generateJwtToken(worker.getEmail(), worker.getRol().name());
             return new AuthResponse(jwt, worker.getEmail(), worker.getNombre(), 
-                                   worker.getApellido(), worker.getRol().name());
+                                   worker.getApellido(), worker.getRol().name(), worker.getNumeroEmpleado());
         }
         
         // Si no es un worker, intentar autenticar como User normal
@@ -121,22 +121,5 @@ public class AuthService {
 
         return new AuthResponse(jwt, savedUser.getEmail(), savedUser.getFirstName(), 
                                savedUser.getLastName(), savedUser.getRole().name());
-    }
-
-    public AuthResponse workerLogin(LoginRequest loginRequest) {
-        Worker worker = workerRepository.findByEmail(loginRequest.getEmail())
-            .orElseThrow(() -> new RuntimeException("Worker not found"));
-        
-        if (!worker.isActivo()) {
-            throw new RuntimeException("Worker account is not active");
-        }
-        
-        if (!passwordEncoder.matches(loginRequest.getPassword(), worker.getPassword())) {
-            throw new RuntimeException("Invalid password");
-        }
-        
-        String jwt = jwtUtils.generateJwtToken(worker.getEmail(), worker.getRol().name());
-        return new AuthResponse(jwt, worker.getEmail(), worker.getNombre(), 
-                               worker.getApellido(), worker.getRol().name());
     }
 }

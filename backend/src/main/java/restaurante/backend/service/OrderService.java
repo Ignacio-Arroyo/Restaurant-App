@@ -49,8 +49,29 @@ public class OrderService {
         
         Order order;
         
-        // Si es una orden de empleado (tiene información del cliente), crear orden local
-        if (orderRequest.getCustomerFirstName() != null && !orderRequest.getCustomerFirstName().isEmpty()) {
+        // Si employeeId es "000000", es una orden de cliente directo (independientemente de si hay info de cliente)
+        if ("000000".equals(orderRequest.getEmployeeId())) {
+            System.out.println("DEBUG: Creating customer direct order (user-linked order)");
+            // Orden de cliente autenticado - vincular al user
+            UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            System.out.println("DEBUG: UserPrincipal username: " + userPrincipal.getUsername());
+            
+            User user = userRepository.findByEmail(userPrincipal.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + userPrincipal.getUsername()));
+
+            order = new Order(user, orderRequest.getTotalCost(), orderRequest.getOrderType());
+            order.setTableNumber(orderRequest.getTableNumber());
+            
+            // Para órdenes de clientes directos, usar la información del usuario como cliente
+            order.setCustomerFirstName(user.getFirstName());
+            order.setCustomerLastName(user.getLastName());
+            order.setCustomerPhone(""); // Los usuarios no tienen teléfono por ahora
+            order.setEmployeeId("000000");
+            order.setEmployeeName("Cliente Directo");
+            order.setEmployeeRole("CUSTOMER");
+        }
+        // Si es una orden de empleado (tiene información del cliente y NO es employeeId 000000)
+        else if (orderRequest.getCustomerFirstName() != null && !orderRequest.getCustomerFirstName().isEmpty()) {
             System.out.println("DEBUG: Creating employee order (local order)");
             // Crear orden local sin vincular a user
             order = new Order(null, orderRequest.getTotalCost(), orderRequest.getOrderType());
@@ -64,8 +85,8 @@ public class OrderService {
             order.setEmployeeName(orderRequest.getEmployeeName());
             order.setEmployeeRole(orderRequest.getEmployeeRole());
         } else {
-            System.out.println("DEBUG: Creating regular user order");
-            // Orden regular de usuario autenticado
+            System.out.println("DEBUG: Creating regular user order (fallback)");
+            // Fallback: Orden regular de usuario autenticado
             UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             System.out.println("DEBUG: UserPrincipal username: " + userPrincipal.getUsername());
             
@@ -74,16 +95,14 @@ public class OrderService {
 
             order = new Order(user, orderRequest.getTotalCost(), orderRequest.getOrderType());
             order.setTableNumber(orderRequest.getTableNumber());
-        }
-        
-        // Configurar información del cliente si es una orden de empleado
-        if (orderRequest.getCustomerFirstName() != null && !orderRequest.getCustomerFirstName().isEmpty()) {
-            order.setCustomerFirstName(orderRequest.getCustomerFirstName());
-            order.setCustomerLastName(orderRequest.getCustomerLastName());
-            order.setCustomerPhone(orderRequest.getCustomerPhone());
-            order.setEmployeeId(orderRequest.getEmployeeId());
-            order.setEmployeeName(orderRequest.getEmployeeName());
-            order.setEmployeeRole(orderRequest.getEmployeeRole());
+            
+            // Para órdenes de clientes directos, usar la información del usuario como cliente
+            order.setCustomerFirstName(user.getFirstName());
+            order.setCustomerLastName(user.getLastName());
+            order.setCustomerPhone(""); // Los usuarios no tienen teléfono por ahora
+            order.setEmployeeId("000000");
+            order.setEmployeeName("Cliente Directo");
+            order.setEmployeeRole("CUSTOMER");
         }
 
         // Save order first to get ID

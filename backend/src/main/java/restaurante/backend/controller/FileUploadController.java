@@ -29,7 +29,7 @@ public class FileUploadController {
     private final String uploadDir = "uploads";
 
     @PostMapping("/upload/{category}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
     public ResponseEntity<Map<String, String>> uploadFile(
             @RequestParam("file") MultipartFile file,
             @PathVariable String category) {
@@ -91,7 +91,7 @@ public class FileUploadController {
     }
 
     @DeleteMapping("/{category}/{filename:.+}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('GERENTE') or hasRole('COCINERO')")
     public ResponseEntity<Map<String, String>> deleteFile(
             @PathVariable String category,
             @PathVariable String filename) {

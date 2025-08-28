@@ -7,6 +7,7 @@ import restaurante.backend.entity.Worker;
 import restaurante.backend.repository.TimeEntryRepository;
 import restaurante.backend.repository.WorkerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class TimeEntryService {
     
     @Autowired
     private WorkerRepository workerRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
@@ -164,7 +168,7 @@ public class TimeEntryService {
         Worker worker = workerRepository.findByNumeroEmpleado(numeroEmpleado)
             .orElseThrow(() -> new IllegalArgumentException("Número de empleado no válido"));
         
-        if (!worker.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, worker.getPassword())) {
             throw new IllegalArgumentException("Contraseña incorrecta");
         }
         

@@ -7,6 +7,9 @@ public class AuthResponse {
     private String firstName;
     private String lastName;
     private String role;
+    // Campos adicionales para workers
+    private String numeroEmpleado;
+    private Boolean isWorker;
 
     // Constructors
     public AuthResponse() {}
@@ -17,6 +20,18 @@ public class AuthResponse {
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
+        this.isWorker = false;
+    }
+
+    // Constructor específico para workers
+    public AuthResponse(String token, String email, String firstName, String lastName, String role, String numeroEmpleado) {
+        this.token = token;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.numeroEmpleado = numeroEmpleado;
+        this.isWorker = true;
     }
 
     // Getters and Setters
@@ -66,5 +81,21 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getNumeroEmpleado() {
+        return numeroEmpleado;
+    }
+
+    public void setNumeroEmpleado(String numeroEmpleado) {
+        this.numeroEmpleado = numeroEmpleado;
+    }
+
+    public Boolean getIsWorker() {
+        return isWorker;
+    }
+
+    public void setIsWorker(Boolean isWorker) {
+        this.isWorker = isWorker;
     }
 }
