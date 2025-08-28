@@ -8,11 +8,12 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class OrderRequest {
-    @NotNull
+    // Estos campos pueden estar vacíos si solo hay promociones
     private List<OrderItemRequest> meals;
     
-    @NotNull
     private List<OrderItemRequest> drinks;
+    
+    private List<OrderItemRequest> promotions; // Promociones son opcionales
     
     @NotNull
     @Positive
@@ -22,6 +23,14 @@ public class OrderRequest {
     private OrderType orderType;
     
     private Integer tableNumber; // Only for DINE_IN orders
+    
+    // Campos para órdenes creadas por empleados
+    private String customerFirstName;
+    private String customerLastName;
+    private String customerPhone;
+    private String employeeId;
+    private String employeeName;
+    private String employeeRole;
 
     // Constructors
     public OrderRequest() {}
@@ -65,6 +74,62 @@ public class OrderRequest {
 
     public void setTableNumber(Integer tableNumber) {
         this.tableNumber = tableNumber;
+    }
+
+    public List<OrderItemRequest> getPromotions() {
+        return promotions;
+    }
+
+    public void setPromotions(List<OrderItemRequest> promotions) {
+        this.promotions = promotions;
+    }
+
+    public String getCustomerFirstName() {
+        return customerFirstName;
+    }
+
+    public void setCustomerFirstName(String customerFirstName) {
+        this.customerFirstName = customerFirstName;
+    }
+
+    public String getCustomerLastName() {
+        return customerLastName;
+    }
+
+    public void setCustomerLastName(String customerLastName) {
+        this.customerLastName = customerLastName;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getEmployeeRole() {
+        return employeeRole;
+    }
+
+    public void setEmployeeRole(String employeeRole) {
+        this.employeeRole = employeeRole;
     }
 
     // Inner class for order items

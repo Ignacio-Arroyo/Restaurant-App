@@ -102,43 +102,43 @@ public class DataInitializer implements CommandLineRunner {
         // Create sample meals
         if (mealRepository.count() == 0) {
             mealRepository.save(new Meal("Margherita Pizza", "Classic Italian pizza with tomato sauce, mozzarella, and fresh basil", 
-                "Tomato sauce, mozzarella cheese, fresh basil, olive oil", "Gluten, Dairy", new BigDecimal("12.99"), MealType.VEGETARIAN));
+                "Tomato sauce, mozzarella cheese, fresh basil, olive oil", "Gluten, Dairy", new BigDecimal("324.75"), MealType.VEGETARIAN));
             
             mealRepository.save(new Meal("Grilled Chicken Breast", "Tender grilled chicken breast with herbs and spices", 
-                "Chicken breast, herbs, spices, olive oil", "None", new BigDecimal("16.99"), MealType.MEAT));
+                "Chicken breast, herbs, spices, olive oil", "None", new BigDecimal("424.75"), MealType.MEAT));
             
             mealRepository.save(new Meal("Vegan Buddha Bowl", "Nutritious bowl with quinoa, vegetables, and tahini dressing", 
-                "Quinoa, mixed vegetables, tahini, lemon, herbs", "Sesame", new BigDecimal("14.99"), MealType.VEGAN));
+                "Quinoa, mixed vegetables, tahini, lemon, herbs", "Sesame", new BigDecimal("374.75"), MealType.VEGAN));
             
             mealRepository.save(new Meal("Organic Salmon", "Fresh organic salmon with seasonal vegetables", 
-                "Organic salmon, seasonal vegetables, herbs", "Fish", new BigDecimal("22.99"), MealType.BIO));
+                "Organic salmon, seasonal vegetables, herbs", "Fish", new BigDecimal("574.75"), MealType.BIO));
         }
 
         // Create sample drinks
         if (drinkRepository.count() == 0) {
-            Drink cocaCola = new Drink("Coca Cola", "Classic cola soft drink", new BigDecimal("3.99"), DrinkType.SODA);
+            Drink cocaCola = new Drink("Coca Cola", "Classic cola soft drink", new BigDecimal("99.75"), DrinkType.SODA);
             cocaCola.setSize("MEDIUM");
             drinkRepository.save(cocaCola);
             
-            Drink orangeJuice = new Drink("Fresh Orange Juice", "Freshly squeezed orange juice", new BigDecimal("5.99"), DrinkType.NATURAL);
+            Drink orangeJuice = new Drink("Fresh Orange Juice", "Freshly squeezed orange juice", new BigDecimal("149.75"), DrinkType.NATURAL);
             orangeJuice.setSize("LARGE");
             drinkRepository.save(orangeJuice);
             
-            Drink houseWine = new Drink("House Wine", "Red house wine selection", new BigDecimal("8.99"), DrinkType.ALCOHOL);
+            Drink houseWine = new Drink("House Wine", "Red house wine selection", new BigDecimal("224.75"), DrinkType.ALCOHOL);
             houseWine.setSize("SMALL");
             drinkRepository.save(houseWine);
             
-            Drink sparklingWater = new Drink("Sparkling Water", "Premium sparkling water", new BigDecimal("2.99"), DrinkType.NATURAL);
+            Drink sparklingWater = new Drink("Sparkling Water", "Premium sparkling water", new BigDecimal("74.75"), DrinkType.NATURAL);
             sparklingWater.setSize("MEDIUM");
             drinkRepository.save(sparklingWater);
         }
 
         // Create sample products for inventory
         if (productRepository.count() == 0) {
-            productRepository.save(new Product("Tomatoes", "Fresh organic tomatoes", new BigDecimal("3.50"), 50, "kg"));
-            productRepository.save(new Product("Chicken Breast", "Fresh chicken breast", new BigDecimal("8.99"), 25, "kg"));
-            productRepository.save(new Product("Mozzarella Cheese", "Fresh mozzarella cheese", new BigDecimal("12.99"), 15, "kg"));
-            productRepository.save(new Product("Quinoa", "Organic quinoa", new BigDecimal("6.99"), 20, "kg"));
+            productRepository.save(new Product("Tomatoes", "Fresh organic tomatoes", new BigDecimal("87.50"), 50, "kg"));
+            productRepository.save(new Product("Chicken Breast", "Fresh chicken breast", new BigDecimal("224.75"), 25, "kg"));
+            productRepository.save(new Product("Mozzarella Cheese", "Fresh mozzarella cheese", new BigDecimal("324.75"), 15, "kg"));
+            productRepository.save(new Product("Quinoa", "Organic quinoa", new BigDecimal("174.75"), 20, "kg"));
         }
 
         // Create sample coupons

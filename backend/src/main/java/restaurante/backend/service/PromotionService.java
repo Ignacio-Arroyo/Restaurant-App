@@ -28,18 +28,20 @@ public class PromotionService {
     @Autowired
     private DrinkRepository drinkRepository;
     
-    // Obtener todas las promociones para admin
+    // Obtener todas las promociones para admin (temporalmente solo COMBO)
     public List<PromotionDTO> getAllPromotionsForAdmin() {
         List<Promotion> promotions = promotionRepository.findAllByOrderByCreatedAtDesc();
         return promotions.stream()
+                .filter(promotion -> promotion.getType() == Promotion.PromotionType.COMBO)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
-    // Obtener todas las promociones activas (para clientes)
+    // Obtener todas las promociones activas (para clientes) - temporalmente solo COMBO
     public List<PromotionDTO> getAllActivePromotions() {
         List<Promotion> promotions = promotionRepository.findByAvailableTrueOrderByCreatedAtDesc();
         return promotions.stream()
+                .filter(promotion -> promotion.getType() == Promotion.PromotionType.COMBO)
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
@@ -101,10 +103,14 @@ public class PromotionService {
                 .collect(Collectors.toList());
     }
     
-    // Obtener promociones por tipo
+    // Obtener promociones por tipo (temporalmente solo COMBO)
     public List<PromotionDTO> getPromotionsByType(String type) {
         try {
             Promotion.PromotionType promotionType = Promotion.PromotionType.valueOf(type.toUpperCase());
+            // Temporalmente solo devolver promociones de tipo COMBO
+            if (promotionType != Promotion.PromotionType.COMBO) {
+                return List.of(); // Lista vacía para tipos que no sean COMBO
+            }
             List<Promotion> promotions = promotionRepository.findByTypeAndAvailableTrue(promotionType);
             return promotions.stream()
                     .map(this::convertToDTO)
@@ -130,13 +136,9 @@ public class PromotionService {
             throw new RuntimeException("Tipo de promoción inválido: " + dto.getType());
         }
         
+        // Temporalmente rechazar promociones de descuento
         if ("DISCOUNT".equals(dto.getType().toUpperCase())) {
-            if (dto.getDiscountPercentage() == null || dto.getDiscountPercentage().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("El porcentaje de descuento es obligatorio para promociones de descuento");
-            }
-            if (dto.getDiscountPercentage().compareTo(java.math.BigDecimal.valueOf(100)) > 0) {
-                throw new RuntimeException("El descuento no puede ser mayor al 100%");
-            }
+            throw new RuntimeException("Las promociones de descuento están temporalmente desactivadas. Solo se permiten combos.");
         }
         
         if ("COMBO".equals(dto.getType().toUpperCase())) {

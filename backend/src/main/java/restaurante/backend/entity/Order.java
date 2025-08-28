@@ -42,6 +42,26 @@ public class Order {
     @Column(name = "paid")
     private Boolean paid = true; // Las órdenes se consideran pagadas por defecto al ser colocadas
 
+    // Campos para órdenes creadas por empleados (información del cliente)
+    @Column(name = "customer_first_name")
+    private String customerFirstName;
+
+    @Column(name = "customer_last_name")
+    private String customerLastName;
+
+    @Column(name = "customer_phone")
+    private String customerPhone;
+
+    // Campos para rastrear qué empleado creó la orden
+    @Column(name = "employee_id")
+    private String employeeId;
+
+    @Column(name = "employee_name")
+    private String employeeName;
+
+    @Column(name = "employee_role")
+    private String employeeRole;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<OrderMeal> orderMeals;
@@ -156,5 +176,53 @@ public class Order {
 
     public void setOrderPromotions(List<OrderPromotion> orderPromotions) {
         this.orderPromotions = orderPromotions;
+    }
+
+    public String getCustomerFirstName() {
+        return customerFirstName;
+    }
+
+    public void setCustomerFirstName(String customerFirstName) {
+        this.customerFirstName = customerFirstName;
+    }
+
+    public String getCustomerLastName() {
+        return customerLastName;
+    }
+
+    public void setCustomerLastName(String customerLastName) {
+        this.customerLastName = customerLastName;
+    }
+
+    public String getCustomerPhone() {
+        return customerPhone;
+    }
+
+    public void setCustomerPhone(String customerPhone) {
+        this.customerPhone = customerPhone;
+    }
+
+    public String getEmployeeId() {
+        return employeeId;
+    }
+
+    public void setEmployeeId(String employeeId) {
+        this.employeeId = employeeId;
+    }
+
+    public String getEmployeeName() {
+        return employeeName;
+    }
+
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getEmployeeRole() {
+        return employeeRole;
+    }
+
+    public void setEmployeeRole(String employeeRole) {
+        this.employeeRole = employeeRole;
     }
 }

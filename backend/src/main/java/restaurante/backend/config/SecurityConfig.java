@@ -73,6 +73,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/coupons/validate").permitAll()
                     .requestMatchers("/api/payments/webhook").permitAll() // Allow Stripe webhooks
                     .requestMatchers("/api/payments/**").authenticated() // Require auth for payments (except webhook)
+                    .requestMatchers("/api/public/**").permitAll() // Allow public worker endpoints
                     .requestMatchers("/api/admin/products/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")
                     // .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "GERENTE") // Commented out - too general
                     .requestMatchers("/api/admin/orders/**").hasAnyRole("ADMIN", "GERENTE", "COCINERO")

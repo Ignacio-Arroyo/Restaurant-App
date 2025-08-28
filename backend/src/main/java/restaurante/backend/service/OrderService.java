@@ -35,28 +35,96 @@ public class OrderService {
     private EmailService emailService;
 
     public Order createOrder(OrderRequest orderRequest) {
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findByEmail(userPrincipal.getUsername())
-            .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("=== DEBUG: OrderService.createOrder called ===");
+        System.out.println("OrderRequest received: " + (orderRequest != null ? "NOT NULL" : "NULL"));
+        
+        if (orderRequest != null) {
+            System.out.println("- Meals count: " + (orderRequest.getMeals() != null ? orderRequest.getMeals().size() : "NULL"));
+            System.out.println("- Drinks count: " + (orderRequest.getDrinks() != null ? orderRequest.getDrinks().size() : "NULL"));
+            System.out.println("- Total cost: " + orderRequest.getTotalCost());
+            System.out.println("- Order type: " + orderRequest.getOrderType());
+            System.out.println("- Customer: " + orderRequest.getCustomerFirstName());
+            System.out.println("- Employee ID: " + orderRequest.getEmployeeId());
+        }
+        
+        Order order;
+        
+        // Si es una orden de empleado (tiene información del cliente), crear orden local
+        if (orderRequest.getCustomerFirstName() != null && !orderRequest.getCustomerFirstName().isEmpty()) {
+            System.out.println("DEBUG: Creating employee order (local order)");
+            // Crear orden local sin vincular a user
+            order = new Order(null, orderRequest.getTotalCost(), orderRequest.getOrderType());
+            order.setTableNumber(orderRequest.getTableNumber());
+            
+            // Configurar información del cliente
+            order.setCustomerFirstName(orderRequest.getCustomerFirstName());
+            order.setCustomerLastName(orderRequest.getCustomerLastName());
+            order.setCustomerPhone(orderRequest.getCustomerPhone());
+            order.setEmployeeId(orderRequest.getEmployeeId());
+            order.setEmployeeName(orderRequest.getEmployeeName());
+            order.setEmployeeRole(orderRequest.getEmployeeRole());
+        } else {
+            System.out.println("DEBUG: Creating regular user order");
+            // Orden regular de usuario autenticado
+            UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            System.out.println("DEBUG: UserPrincipal username: " + userPrincipal.getUsername());
+            
+            User user = userRepository.findByEmail(userPrincipal.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + userPrincipal.getUsername()));
 
-        Order order = new Order(user, orderRequest.getTotalCost(), orderRequest.getOrderType());
-        order.setTableNumber(orderRequest.getTableNumber());
+            order = new Order(user, orderRequest.getTotalCost(), orderRequest.getOrderType());
+            order.setTableNumber(orderRequest.getTableNumber());
+        }
+        
+        // Configurar información del cliente si es una orden de empleado
+        if (orderRequest.getCustomerFirstName() != null && !orderRequest.getCustomerFirstName().isEmpty()) {
+            order.setCustomerFirstName(orderRequest.getCustomerFirstName());
+            order.setCustomerLastName(orderRequest.getCustomerLastName());
+            order.setCustomerPhone(orderRequest.getCustomerPhone());
+            order.setEmployeeId(orderRequest.getEmployeeId());
+            order.setEmployeeName(orderRequest.getEmployeeName());
+            order.setEmployeeRole(orderRequest.getEmployeeRole());
+        }
 
         // Save order first to get ID
         Order savedOrder = orderRepository.save(order);
 
+        // Verificar que hay al menos un producto en la orden
+        boolean hasItems = false;
+
         // Process meals
-        for (OrderRequest.OrderItemRequest mealRequest : orderRequest.getMeals()) {
-            Meal meal = menuService.getMealById(mealRequest.getItemId());
-            OrderMeal orderMeal = new OrderMeal(savedOrder, meal, mealRequest.getQuantity());
-            savedOrder.getOrderMeals().add(orderMeal);
+        if (orderRequest.getMeals() != null && !orderRequest.getMeals().isEmpty()) {
+            for (OrderRequest.OrderItemRequest mealRequest : orderRequest.getMeals()) {
+                Meal meal = menuService.getMealById(mealRequest.getItemId());
+                OrderMeal orderMeal = new OrderMeal(savedOrder, meal, mealRequest.getQuantity());
+                savedOrder.getOrderMeals().add(orderMeal);
+                hasItems = true;
+            }
         }
 
         // Process drinks
-        for (OrderRequest.OrderItemRequest drinkRequest : orderRequest.getDrinks()) {
-            Drink drink = menuService.getDrinkById(drinkRequest.getItemId());
-            OrderDrink orderDrink = new OrderDrink(savedOrder, drink, drinkRequest.getQuantity());
-            savedOrder.getOrderDrinks().add(orderDrink);
+        if (orderRequest.getDrinks() != null && !orderRequest.getDrinks().isEmpty()) {
+            for (OrderRequest.OrderItemRequest drinkRequest : orderRequest.getDrinks()) {
+                Drink drink = menuService.getDrinkById(drinkRequest.getItemId());
+                OrderDrink orderDrink = new OrderDrink(savedOrder, drink, drinkRequest.getQuantity());
+                savedOrder.getOrderDrinks().add(orderDrink);
+                hasItems = true;
+            }
+        }
+
+        // Process promotions if they exist
+        if (orderRequest.getPromotions() != null && !orderRequest.getPromotions().isEmpty()) {
+            for (OrderRequest.OrderItemRequest promotionRequest : orderRequest.getPromotions()) {
+                Promotion promotion = menuService.getPromotionById(promotionRequest.getItemId());
+                OrderPromotion orderPromotion = new OrderPromotion(savedOrder, promotion, promotionRequest.getQuantity(), promotion.getComboPrice());
+                savedOrder.getOrderPromotions().add(orderPromotion);
+                hasItems = true;
+            }
+        }
+
+        // Validar que hay al menos un producto en la orden
+        if (!hasItems) {
+            throw new RuntimeException("Order must contain at least one item (meal, drink, or promotion)");
         }
 
         Order finalOrder = orderRepository.save(savedOrder);
@@ -66,12 +134,15 @@ public class OrderService {
             registerSaleFromOrder(finalOrder);
         }
         
-        // Enviar email de confirmación de orden
-        try {
-            emailService.sendOrderConfirmationEmail(finalOrder);
-        } catch (Exception e) {
-            // Log del error pero no fallar la creación de la orden
-            System.err.println("Error sending order confirmation email for order " + finalOrder.getId() + ": " + e.getMessage());
+        // Enviar email de confirmación de orden solo si no es una orden de empleado
+        // (porque el cliente puede no tener email registrado)
+        if (finalOrder.getCustomerFirstName() == null || finalOrder.getCustomerFirstName().isEmpty()) {
+            try {
+                emailService.sendOrderConfirmationEmail(finalOrder);
+            } catch (Exception e) {
+                // Log del error pero no fallar la creación de la orden
+                System.err.println("Error sending order confirmation email for order " + finalOrder.getId() + ": " + e.getMessage());
+            }
         }
         
         return finalOrder;

@@ -6,8 +6,10 @@ import restaurante.backend.entity.Drink;
 import restaurante.backend.entity.DrinkType;
 import restaurante.backend.entity.Meal;
 import restaurante.backend.entity.MealType;
+import restaurante.backend.entity.Promotion;
 import restaurante.backend.repository.DrinkRepository;
 import restaurante.backend.repository.MealRepository;
+import restaurante.backend.repository.PromotionRepository;
 
 import java.util.List;
 
@@ -19,6 +21,9 @@ public class MenuService {
 
     @Autowired
     private DrinkRepository drinkRepository;
+
+    @Autowired
+    private PromotionRepository promotionRepository;
 
     // Customer endpoints - only show available items
     public List<Meal> getAllMeals() {
@@ -45,6 +50,11 @@ public class MenuService {
     public Drink getDrinkById(Long id) {
         return drinkRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Drink not found with id: " + id));
+    }
+
+    public Promotion getPromotionById(Long id) {
+        return promotionRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Promotion not found with id: " + id));
     }
 
     // Admin methods for CRUD operations

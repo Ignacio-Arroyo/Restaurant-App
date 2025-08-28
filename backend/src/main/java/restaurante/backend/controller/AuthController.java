@@ -27,6 +27,16 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/worker/login")
+    public ResponseEntity<AuthResponse> workerLogin(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            AuthResponse response = authService.workerLogin(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
