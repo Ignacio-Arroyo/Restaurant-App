@@ -1,8 +1,11 @@
 package restaurante.backend.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import restaurante.backend.dto.OrderRequest;
 import restaurante.backend.entity.*;
 import restaurante.backend.repository.OrderRepository;
@@ -15,6 +18,8 @@ import java.util.List;
 
 @Service
 public class OrderService {
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
 
     @Autowired
     private OrderRepository orderRepository;
@@ -111,6 +116,31 @@ public class OrderService {
         // Verificar que hay al menos un producto en la orden
         boolean hasItems = false;
 
+        // Verificar disponibilidad de inventario ANTES de crear la orden
+        if (orderRequest.getMeals() != null && !orderRequest.getMeals().isEmpty()) {
+            for (OrderRequest.OrderItemRequest mealRequest : orderRequest.getMeals()) {
+                if (!inventoryService.isMealAvailable(mealRequest.getItemId(), mealRequest.getQuantity())) {
+                    throw new RuntimeException("No hay suficiente inventario para el platillo solicitado: " + mealRequest.getItemId());
+                }
+            }
+        }
+        
+        if (orderRequest.getDrinks() != null && !orderRequest.getDrinks().isEmpty()) {
+            for (OrderRequest.OrderItemRequest drinkRequest : orderRequest.getDrinks()) {
+                if (!inventoryService.isDrinkAvailable(drinkRequest.getItemId(), drinkRequest.getQuantity())) {
+                    throw new RuntimeException("No hay suficiente inventario para la bebida solicitada: " + drinkRequest.getItemId());
+                }
+            }
+        }
+
+        if (orderRequest.getPromotions() != null && !orderRequest.getPromotions().isEmpty()) {
+            for (OrderRequest.OrderItemRequest promotionRequest : orderRequest.getPromotions()) {
+                if (!inventoryService.isPromotionAvailable(promotionRequest.getItemId(), promotionRequest.getQuantity())) {
+                    throw new RuntimeException("No hay suficiente inventario para la promoción solicitada: " + promotionRequest.getItemId());
+                }
+            }
+        }
+
         // Process meals
         if (orderRequest.getMeals() != null && !orderRequest.getMeals().isEmpty()) {
             for (OrderRequest.OrderItemRequest mealRequest : orderRequest.getMeals()) {
@@ -147,6 +177,16 @@ public class OrderService {
         }
 
         Order finalOrder = orderRepository.save(savedOrder);
+        
+        // RESERVAR INVENTARIO INMEDIATAMENTE al crear la orden
+        try {
+            inventoryService.processOrderCompletion(finalOrder);
+            System.out.println("Inventario reservado para orden #" + finalOrder.getId());
+        } catch (Exception e) {
+            // Si falla la reserva de inventario, cancelar la orden
+            orderRepository.delete(finalOrder);
+            throw new RuntimeException("Error al reservar inventario: " + e.getMessage());
+        }
         
         // Registrar venta automáticamente ya que la orden se considera pagada por defecto
         if (finalOrder.getPaid()) {
@@ -185,29 +225,55 @@ public class OrderService {
         return orderRepository.findAllByOrderByOrderDateDesc();
     }
 
+    @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         
         OrderStatus previousStatus = order.getStatus();
+        
+        // Validar transiciones de estado válidas
+        if (!isValidStatusTransition(previousStatus, status)) {
+            throw new RuntimeException("Transición de estado inválida: " + previousStatus + " -> " + status);
+        }
+        
         order.setStatus(status);
         Order savedOrder = orderRepository.save(order);
+        
+        // Si se cancela la orden, restaurar inventario
+        if (status == OrderStatus.CANCELLED) {
+            inventoryService.restoreStockFromCancelledOrder(order);
+            logger.info("Inventario restaurado para orden cancelada #{}", orderId);
+        }
         
         // Procesar cuando el pedido esté listo
         if (status == OrderStatus.READY && previousStatus != OrderStatus.READY) {
             try {
-                // Reducir inventario automáticamente
-                inventoryService.processOrderCompletion(savedOrder);
-                
-                // Enviar email cuando el pedido esté listo
+                // Solo enviar email cuando el pedido esté listo
+                // El inventario ya se redujo al crear la orden
                 emailService.sendOrderReadyEmail(savedOrder);
+                System.out.println("Email de pedido listo enviado para orden #" + savedOrder.getId());
             } catch (Exception e) {
                 // Log del error pero no fallar la actualización del estado
-                System.err.println("Error processing order completion for order " + savedOrder.getId() + ": " + e.getMessage());
+                System.err.println("Error sending ready email for order " + savedOrder.getId() + ": " + e.getMessage());
             }
         }
         
         return savedOrder;
+    }
+
+    // Validar transiciones de estado válidas
+    private boolean isValidStatusTransition(OrderStatus from, OrderStatus to) {
+        if (from == to) return true;
+        
+        return switch (from) {
+            case PENDING -> to == OrderStatus.PREPARING || to == OrderStatus.CANCELLED;
+            case PREPARING -> to == OrderStatus.READY || to == OrderStatus.CANCELLED;
+            case READY -> to == OrderStatus.DELIVERED || to == OrderStatus.CANCELLED;
+            case DELIVERED -> false; // No se puede cambiar desde delivered
+            case CANCELLED -> false; // No se puede cambiar desde cancelled
+            default -> false; // Estados desconocidos no permiten transiciones
+        };
     }
 
     private void registerSaleFromOrder(Order order) {

@@ -238,6 +238,102 @@ public class InventoryService {
         logger.info("Inventario actualizado para orden #{}", order.getId());
     }
 
+    // ==================== STOCK RESTORATION ====================
+
+    @Transactional
+    public void restoreStockFromCancelledOrder(Order order) {
+        logger.info("Restaurando inventario para orden cancelada #{}", order.getId());
+
+        // Restaurar platillos
+        if (order.getOrderMeals() != null) {
+            for (OrderMeal orderMeal : order.getOrderMeals()) {
+                restoreStockForMeal(orderMeal.getMeal().getId(), orderMeal.getQuantity());
+            }
+        }
+
+        // Restaurar bebidas
+        if (order.getOrderDrinks() != null) {
+            for (OrderDrink orderDrink : order.getOrderDrinks()) {
+                restoreStockForDrink(orderDrink.getDrink().getId(), orderDrink.getQuantity());
+            }
+        }
+
+        // Restaurar promociones
+        if (order.getOrderPromotions() != null) {
+            for (OrderPromotion orderPromotion : order.getOrderPromotions()) {
+                restoreStockForPromotion(orderPromotion.getPromotion().getId(), orderPromotion.getQuantity());
+            }
+        }
+
+        logger.info("Inventario restaurado para orden cancelada #{}", order.getId());
+    }
+
+    @Transactional
+    public void restoreStockForMeal(Long mealId, int quantity) {
+        List<MealInventory> mealIngredients = getMealIngredients(mealId);
+        
+        for (MealInventory mealInventory : mealIngredients) {
+            InventoryItem inventoryItem = mealInventory.getInventoryItem();
+            BigDecimal totalToRestore = mealInventory.getTotalQuantityNeeded(quantity);
+            
+            logger.info("Restaurando stock: {} + {} {} (tenía: {}, nuevo: {})", 
+                       inventoryItem.getName(), 
+                       totalToRestore, 
+                       inventoryItem.getUnit(),
+                       inventoryItem.getCurrentStock(),
+                       inventoryItem.getCurrentStock().add(totalToRestore));
+            
+            inventoryItem.addStock(totalToRestore);
+            inventoryItemRepository.save(inventoryItem);
+        }
+    }
+
+    @Transactional
+    public void restoreStockForDrink(Long drinkId, int quantity) {
+        List<DrinkInventory> drinkIngredients = getDrinkIngredients(drinkId);
+        
+        for (DrinkInventory drinkInventory : drinkIngredients) {
+            InventoryItem inventoryItem = drinkInventory.getInventoryItem();
+            BigDecimal totalToRestore = drinkInventory.getTotalQuantityNeeded(quantity);
+            
+            logger.info("Restaurando stock: {} + {} {} (tenía: {}, nuevo: {})", 
+                       inventoryItem.getName(), 
+                       totalToRestore, 
+                       inventoryItem.getUnit(),
+                       inventoryItem.getCurrentStock(),
+                       inventoryItem.getCurrentStock().add(totalToRestore));
+            
+            inventoryItem.addStock(totalToRestore);
+            inventoryItemRepository.save(inventoryItem);
+        }
+    }
+
+    @Transactional
+    public void restoreStockForPromotion(Long promotionId, int quantity) {
+        // Obtener la promoción y sus componentes
+        Optional<Promotion> promotionOpt = promotionRepository.findById(promotionId);
+        if (promotionOpt.isEmpty()) {
+            logger.warn("Promoción no encontrada: {}", promotionId);
+            return;
+        }
+
+        Promotion promotion = promotionOpt.get();
+        
+        // Restaurar stock de las comidas incluidas
+        if (promotion.getMeals() != null) {
+            for (Meal meal : promotion.getMeals()) {
+                restoreStockForMeal(meal.getId(), quantity);
+            }
+        }
+
+        // Restaurar stock de las bebidas incluidas  
+        if (promotion.getDrinks() != null) {
+            for (Drink drink : promotion.getDrinks()) {
+                restoreStockForDrink(drink.getId(), quantity);
+            }
+        }
+    }
+
     // ==================== STOCK ALERTS ====================
 
     public List<InventoryItem> generateStockAlerts() {

@@ -2,6 +2,7 @@ package restaurante.backend.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import restaurante.backend.dto.MealWithInventoryDTO;
 import restaurante.backend.entity.Drink;
 import restaurante.backend.entity.DrinkType;
 import restaurante.backend.entity.Meal;
@@ -11,6 +12,8 @@ import restaurante.backend.repository.DrinkRepository;
 import restaurante.backend.repository.MealRepository;
 import restaurante.backend.repository.PromotionRepository;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -81,5 +84,38 @@ public class MenuService {
 
     public List<Drink> getAllDrinksForAdmin() {
         return drinkRepository.findAll();
+    }
+
+    // ==================== ADVANCED MEAL MANAGEMENT ====================
+
+    public Meal createMeal(MealWithInventoryDTO mealData) {
+        Meal meal = new Meal();
+        meal.setName(mealData.getName());
+        meal.setDescription(mealData.getDescription());
+        meal.setIngredients(mealData.getIngredients());
+        meal.setCost(BigDecimal.valueOf(mealData.getCost()));
+        meal.setType(mealData.getType());
+        meal.setAllergens(mealData.getAllergens());
+        meal.setImageUrl(mealData.getImageUrl());
+        meal.setAvailable(mealData.getAvailable() != null ? mealData.getAvailable() : true);
+        
+        return mealRepository.save(meal);
+    }
+
+    public void updateMeal(Long id, MealWithInventoryDTO mealData) {
+        Meal meal = getMealById(id);
+        
+        meal.setName(mealData.getName());
+        meal.setDescription(mealData.getDescription());
+        meal.setIngredients(mealData.getIngredients());
+        meal.setCost(BigDecimal.valueOf(mealData.getCost()));
+        meal.setType(mealData.getType());
+        meal.setAllergens(mealData.getAllergens());
+        meal.setImageUrl(mealData.getImageUrl());
+        if (mealData.getAvailable() != null) {
+            meal.setAvailable(mealData.getAvailable());
+        }
+        
+        mealRepository.save(meal);
     }
 }
