@@ -227,18 +227,29 @@ public class OrderService {
 
     @Transactional
     public Order updateOrderStatus(Long orderId, OrderStatus status) {
+        System.out.println("🔄 DEBUG: Intentando actualizar orden " + orderId + " al estado " + status);
+        
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
         
         OrderStatus previousStatus = order.getStatus();
+        System.out.println("📋 DEBUG: Estado actual de la orden: " + previousStatus);
+        System.out.println("🎯 DEBUG: Estado objetivo: " + status);
         
         // Validar transiciones de estado válidas
-        if (!isValidStatusTransition(previousStatus, status)) {
-            throw new RuntimeException("Transición de estado inválida: " + previousStatus + " -> " + status);
+        boolean isValidTransition = isValidStatusTransition(previousStatus, status);
+        System.out.println("✅ DEBUG: ¿Transición válida? " + isValidTransition);
+        
+        if (!isValidTransition) {
+            String errorMsg = "Transición de estado inválida: " + previousStatus + " -> " + status;
+            System.err.println("❌ ERROR: " + errorMsg);
+            throw new RuntimeException(errorMsg);
         }
         
         order.setStatus(status);
+        System.out.println("💾 DEBUG: Guardando orden con nuevo estado...");
         Order savedOrder = orderRepository.save(order);
+        System.out.println("✅ DEBUG: Orden guardada exitosamente con estado: " + savedOrder.getStatus());
         
         // Si se cancela la orden, restaurar inventario
         if (status == OrderStatus.CANCELLED) {
@@ -264,16 +275,45 @@ public class OrderService {
 
     // Validar transiciones de estado válidas
     private boolean isValidStatusTransition(OrderStatus from, OrderStatus to) {
-        if (from == to) return true;
+        System.out.println("🔍 DEBUG: Validando transición: " + from + " -> " + to);
         
-        return switch (from) {
-            case PENDING -> to == OrderStatus.PREPARING || to == OrderStatus.CANCELLED;
-            case PREPARING -> to == OrderStatus.READY || to == OrderStatus.CANCELLED;
-            case READY -> to == OrderStatus.DELIVERED || to == OrderStatus.CANCELLED;
-            case DELIVERED -> false; // No se puede cambiar desde delivered
-            case CANCELLED -> false; // No se puede cambiar desde cancelled
-            default -> false; // Estados desconocidos no permiten transiciones
+        if (from == to) {
+            System.out.println("✅ DEBUG: Estados iguales, transición válida");
+            return true;
+        }
+        
+        boolean isValid = switch (from) {
+            case PENDING -> {
+                boolean valid = (to == OrderStatus.PREPARING || to == OrderStatus.CANCELLED);
+                System.out.println("📋 DEBUG: Desde PENDING a " + to + " = " + valid);
+                yield valid;
+            }
+            case PREPARING -> {
+                boolean valid = (to == OrderStatus.READY || to == OrderStatus.CANCELLED);
+                System.out.println("👨‍🍳 DEBUG: Desde PREPARING a " + to + " = " + valid);
+                yield valid;
+            }
+            case READY -> {
+                boolean valid = (to == OrderStatus.DELIVERED || to == OrderStatus.CANCELLED);
+                System.out.println("🔔 DEBUG: Desde READY a " + to + " = " + valid);
+                yield valid;
+            }
+            case DELIVERED -> {
+                System.out.println("🎉 DEBUG: Desde DELIVERED - No se permite cambio");
+                yield false; // No se puede cambiar desde delivered
+            }
+            case CANCELLED -> {
+                System.out.println("❌ DEBUG: Desde CANCELLED - No se permite cambio");
+                yield false; // No se puede cambiar desde cancelled
+            }
+            default -> {
+                System.out.println("❓ DEBUG: Estado desconocido: " + from);
+                yield false; // Estados desconocidos no permiten transiciones
+            }
         };
+        
+        System.out.println("🎯 DEBUG: Resultado final de validación: " + isValid);
+        return isValid;
     }
 
     private void registerSaleFromOrder(Order order) {

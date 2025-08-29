@@ -176,13 +176,32 @@ public class AdminController {
 
     @PutMapping("/orders/{id}/status")
     public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> statusRequest) {
+        System.out.println("======= UPDATE ORDER STATUS REQUEST =======");
+        System.out.println("Order ID: " + id);
+        System.out.println("Status Request: " + statusRequest);
+        
         try {
+            // Check if order exists first
+            Order existingOrder = orderService.getOrderById(id);
+            if (existingOrder == null) {
+                System.out.println("ERROR: Order with ID " + id + " not found in database");
+                return ResponseEntity.notFound().build();
+            }
+            
+            System.out.println("Found existing order: " + existingOrder.getId() + " with status: " + existingOrder.getStatus());
+            
             OrderStatus status = OrderStatus.valueOf(statusRequest.get("status"));
+            System.out.println("Attempting to change status to: " + status);
+            
             Order updatedOrder = orderService.updateOrderStatus(id, status);
+            System.out.println("Successfully updated order status");
             return ResponseEntity.ok(updatedOrder);
         } catch (IllegalArgumentException e) {
+            System.out.println("ERROR: Invalid status value - " + e.getMessage());
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            System.out.println("ERROR: Exception during order status update - " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
