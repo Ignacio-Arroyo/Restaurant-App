@@ -143,8 +143,8 @@ Total: $30.98
 # Email ya configurado
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
-EMAIL_USERNAME=ignacio.arroyogarza@gmail.com
-EMAIL_PASSWORD=bwym bhho kbpz mdyy
+EMAIL_USERNAME=[email]
+EMAIL_PASSWORD=[password]
 
 # Información del restaurante
 RESTAURANT_NAME=Restaurant App
